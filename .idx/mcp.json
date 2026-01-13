@@ -1,3 +1,4 @@
+
 {
   "mcpServers": {
     "firebase": {
@@ -6,6 +7,14 @@
         "-y",
         "firebase-tools@latest",
         "experimental:mcp"
+      ]
+    },
+    "postgresql": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgresql",
+        "postgresql://postgres.lwhzpcacojuwmlgrblta:QbpiZ0RC9wMhdhmf@aws-1-us-west-1.pooler.supabase.com:6543/postgres?sslmode=require"
       ]
     }
   }
