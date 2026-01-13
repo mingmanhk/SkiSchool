@@ -1,8 +1,8 @@
 
-import { createClient } from '@/src/utils/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import { NextRequest } from 'next/server';
-import { getDictionary } from '@/src/i18n/server';
-import { apiSuccess, apiError } from '@/src/lib/api/response';
+import { getDictionary } from '@/i18n/server';
+import { apiSuccess, apiError } from '@/lib/api/response';
 
 export async function POST(
   request: NextRequest,

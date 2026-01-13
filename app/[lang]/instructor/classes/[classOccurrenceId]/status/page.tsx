@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslation } from '@/src/i18n/client';
+import { useTranslation } from '@/i18n/client';
 
 export default function ClassStatusPage({ params }: { params: { classOccurrenceId: string, lang: string } }) {
     const { t } = useTranslation()

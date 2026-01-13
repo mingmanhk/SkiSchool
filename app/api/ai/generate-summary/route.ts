@@ -1,7 +1,7 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
-import { generateCoachingSummary } from '@/src/lib/ai/coaching';
+import { generateCoachingSummary } from '@/lib/ai/coaching';
 
 export async function POST(request: Request) {
   const supabase = await createClient();

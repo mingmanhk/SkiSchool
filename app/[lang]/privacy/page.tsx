@@ -1,5 +1,5 @@
 
-import { getDictionary } from '@/src/i18n/server'
+import { getDictionary } from '@/i18n/server'
 import Footer from '../components/Footer'
 import Navbar from '../components/Navbar'
 

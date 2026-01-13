@@ -1,5 +1,5 @@
 
-import { getDictionary } from '@/src/i18n/server'
+import { getDictionary } from '@/i18n/server'
 import Link from 'next/link'
 
 export default async function Footer({ lang }: { lang: string }) {

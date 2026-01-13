@@ -1,6 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import { ApiResponse } from '@/src/types';
+import { ApiResponse } from '@/types';
 
 /**
  * Standardized success response helper.
@@ -27,7 +27,7 @@ export function apiError(message: string, status = 500): NextResponse<ApiRespons
 /**
  * Type guard to check if an object is a valid UserProfile
  */
-export function isValidUserProfile(data: any): data is import('@/src/types').UserProfile {
+export function isValidUserProfile(data: any): data is import('@/types').UserProfile {
   return (
     typeof data.id === 'string' &&
     typeof data.email === 'string' &&

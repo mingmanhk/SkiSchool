@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getDictionary } from '@/src/i18n/server'
+import { getDictionary } from '@/i18n/server'
 import { useParams } from 'next/navigation'
 
 // Simple hook for client components until fully integrated with react-i18next or similar

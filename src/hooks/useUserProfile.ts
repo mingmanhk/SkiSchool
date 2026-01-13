@@ -1,6 +1,6 @@
 
-import { createClient } from '@/src/utils/supabase/client';
-import { UserProfile } from '@/src/types';
+import { createClient } from '@/utils/supabase/client';
+import { UserProfile } from '@/types';
 import { useEffect, useState } from 'react';
 
 // Custom hook to fetch the current user's profile with strict typing

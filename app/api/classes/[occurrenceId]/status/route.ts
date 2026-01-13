@@ -1,9 +1,9 @@
 
-import { createClient } from '@/src/utils/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import { NextRequest } from 'next/server';
-import { apiSuccess, apiError } from '@/src/lib/api/response';
-import { updateStatusSchema } from '@/src/lib/validation/schemas';
-import { UserRole } from '@/src/types';
+import { apiSuccess, apiError } from '@/lib/api/response';
+import { updateStatusSchema } from '@/lib/validation/schemas';
+import { UserRole } from '@/types';
 
 export async function POST(request: NextRequest, { params }: { params: { occurrenceId: string } }) {
   try {

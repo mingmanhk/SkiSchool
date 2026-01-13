@@ -1,7 +1,7 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
-import { getDictionary } from '@/src/i18n/server';
+import { getDictionary } from '@/i18n/server';
 
 export async function GET(
   request: Request,

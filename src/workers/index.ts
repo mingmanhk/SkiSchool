@@ -1,7 +1,7 @@
 
 import cron from 'node-cron';
 import { createClient } from '@/utils/supabase/server'; // Note: In a real worker, you'd use the Service Role client directly
-import { generateCoachingSummary } from '@/src/lib/ai/coaching';
+import { generateCoachingSummary } from '@/lib/ai/coaching';
 
 // Initialize Supabase Service Role Client (Mock setup for this file structure)
 // const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);

@@ -1,5 +1,5 @@
 
-import { getDictionary } from '@/src/i18n/server'
+import { getDictionary } from '@/i18n/server'
 import Navbar from './components/Navbar'
 
 export default async function Page({ params }: { params: { lang: string } }) {
