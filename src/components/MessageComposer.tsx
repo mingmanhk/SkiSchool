@@ -2,13 +2,15 @@
 'use client';
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-react';
+import { createClient } from '@/lib/supabase/client';
 
-export default function MessageComposer({ threadId, onNewMessage }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default function MessageComposer({ threadId, onNewMessage }: { threadId: string, onNewMessage: (msg: any) => void }) {
   const [message, setMessage] = useState('');
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
-  const handleSubmit = async (e) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (!message.trim()) return;
 

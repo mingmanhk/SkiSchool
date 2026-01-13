@@ -1,8 +1,8 @@
 
-import { createClient } from '@/src/utils/supabase/server';
+import { createClient } from '@/utils/supabase/server';
 import { NextRequest } from 'next/server';
-import { apiSuccess, apiError } from '@/src/lib/api/response';
-import { Program } from '@/src/types';
+import { apiSuccess, apiError } from '@/lib/api/response';
+import { Program } from '@/types';
 
 export async function GET(
   request: NextRequest,
