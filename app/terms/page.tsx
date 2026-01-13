@@ -1,10 +1,5 @@
 
-import { getDictionary } from '@/i18n/server'
-
-export default async function TermsPage({ params: { lang } }: { params: { lang: string } }) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const dict = await getDictionary(lang)
-
+export default function TermsPage() {
   return (
     <div className="container mx-auto max-w-3xl py-12 px-4 text-gray-800 dark:text-gray-200">
       <h1 className="mb-6 text-3xl font-bold">Terms and Conditions</h1>
