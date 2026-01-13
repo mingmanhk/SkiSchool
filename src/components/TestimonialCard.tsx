@@ -10,7 +10,7 @@ interface TestimonialCardProps {
 const TestimonialCard = ({ quote, name, imgSrc }: TestimonialCardProps) => {
   return (
     <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-      <p className="text-lg text-gray-300 mb-4">"{quote}"</p>
+      <p className="text-lg text-gray-300 mb-4">&quot;{quote}&quot;</p>
       <div className="flex items-center">
         <Image
           src={imgSrc}

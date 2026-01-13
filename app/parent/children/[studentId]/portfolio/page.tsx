@@ -40,7 +40,7 @@ export default async function StudentPortfolioPage({ params }: { params: { stude
             {student.first_name[0]}
         </div>
         <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{student.first_name}'s Portfolio</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{student.first_name}&apos;s Portfolio</h1>
             <p className="text-gray-500">Level 4 Skier • Enrolled in Weekend Warriors</p>
         </div>
       </div>

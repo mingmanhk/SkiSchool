@@ -1,5 +1,10 @@
 
-export default function TermsPage() {
+import { getDictionary } from '@/i18n/server'
+
+export default async function TermsPage({ params: { lang } }: { params: { lang: string } }) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const dict = await getDictionary(lang)
+
   return (
     <div className="container mx-auto max-w-3xl py-12 px-4 text-gray-800 dark:text-gray-200">
       <h1 className="mb-6 text-3xl font-bold">Terms and Conditions</h1>
@@ -12,7 +17,7 @@ export default function TermsPage() {
 
       <section className="mb-8">
         <h2 className="mb-2 text-xl font-semibold">2. Use of Platform</h2>
-        <p>You agree to use the platform only for lawful purposes and in a way that does not infringe the rights of, restrict, or inhibit anyone else's use and enjoyment of the platform.</p>
+        <p>You agree to use the platform only for lawful purposes and in a way that does not infringe the rights of, restrict, or inhibit anyone else&apos;s use and enjoyment of the platform.</p>
       </section>
 
       <section className="mb-8">
@@ -22,7 +27,7 @@ export default function TermsPage() {
 
       <section className="mb-8">
         <h2 className="mb-2 text-xl font-semibold">4. Liability</h2>
-        <p>Ski School OS is provided "as is". We are not liable for any damages arising from the use of this platform, including but not limited to direct, indirect, incidental, punitive, and consequential damages.</p>
+        <p>Ski School OS is provided &quot;as is&quot;. We are not liable for any damages arising from the use of this platform, including but not limited to direct, indirect, incidental, punitive, and consequential damages.</p>
       </section>
       
       <section>

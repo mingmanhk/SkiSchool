@@ -30,11 +30,11 @@ export default async function StudentTodayPage({ params }: { params: { studentId
   // fetch *any* recent status event linked to a class this student is in.
   
   // Let's pretend we found an occurrence ID:
-  const mockOccurrenceId = "00000000-0000-0000-0000-000000000000"; // Replace with real logic
+  // const mockOccurrenceId = "00000000-0000-0000-0000-000000000000"; // Replace with real logic
 
   return (
     <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-2">Today's Class</h1>
+      <h1 className="text-2xl font-bold mb-2">Today&apos;s Class</h1>
       <p className="text-gray-600 mb-6">Student: {student.first_name} {student.last_name}</p>
 
       <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
