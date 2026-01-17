@@ -7,15 +7,16 @@ import { redirect } from 'next/navigation'
 export default async function InstructorRegistryPage({
   searchParams,
 }: {
-  searchParams: { date?: string }
+  searchParams: Promise<{ date?: string }>
 }) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
 
+  const { date: dateParam } = await searchParams
   // Default to today
-  const date = searchParams.date || new Date().toISOString().split('T')[0]
+  const date = dateParam || new Date().toISOString().split('T')[0]
 
   let registryData: any[] = []
 

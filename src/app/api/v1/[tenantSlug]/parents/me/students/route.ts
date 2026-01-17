@@ -4,8 +4,9 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { tenantSlug: string } }
+  { params }: { params: Promise<{ tenantSlug: string }> }
 ) {
+  const { tenantSlug } = await params;
   const { searchParams } = new URL(request.url);
   const lang = searchParams.get('lang') === 'zh' ? 'zh' : 'en';
   const supabase = await createClient();
@@ -14,7 +15,7 @@ export async function GET(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   // 1. Resolve Tenant
-  const { data: school } = await supabase.from('schools').select('id').eq('slug', params.tenantSlug).single();
+  const { data: school } = await supabase.from('schools').select('id').eq('slug', tenantSlug).single();
   if (!school) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
 
   // 2. Fetch Students for Parent
@@ -31,8 +32,9 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { tenantSlug: string } }
+  { params }: { params: Promise<{ tenantSlug: string }> }
 ) {
+  const { tenantSlug } = await params;
   const body = await request.json();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

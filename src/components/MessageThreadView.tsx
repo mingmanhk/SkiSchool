@@ -1,14 +1,13 @@
-
 'use client'
 
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import MessageComposer from './MessageComposer';
 
-export default function MessageThreadView({ messages: initialMessages }) {
+export default function MessageThreadView({ messages: initialMessages }: { messages: any[] }) {
   const [messages, setMessages] = useState(initialMessages);
   const params = useParams();
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -19,7 +18,7 @@ export default function MessageThreadView({ messages: initialMessages }) {
   }, [messages]);
 
 
-  const handleNewMessage = (newMessage) => {
+  const handleNewMessage = (newMessage: any) => {
     setMessages(currentMessages => [...currentMessages, newMessage]);
   };
 

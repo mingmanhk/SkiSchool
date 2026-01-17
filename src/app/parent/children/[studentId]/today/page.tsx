@@ -2,14 +2,15 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 
-export default async function StudentTodayPage({ params }: { params: { studentId: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function StudentTodayPage({ params }: { params: Promise<{ studentId: string }> }) {
+  const { studentId } = await params;
+  const supabase = await createServerSupabaseClient()
   
   // 1. Fetch student to verify access and get name
   const { data: student, error: studentError } = await supabase
     .from('students')
     .select('first_name, last_name')
-    .eq('id', params.studentId)
+    .eq('id', studentId)
     .single()
 
   if (studentError || !student) {
@@ -34,7 +35,7 @@ export default async function StudentTodayPage({ params }: { params: { studentId
 
   return (
     <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-2">Today&apos;s Class</h1>
+      <h1 className="text-2xl font-bold mb-2">Today's Class</h1>
       <p className="text-gray-600 mb-6">Student: {student.first_name} {student.last_name}</p>
 
       <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">

@@ -2,14 +2,15 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 
-export default async function StudentPortfolioPage({ params }: { params: { studentId: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function StudentPortfolioPage({ params }: { params: Promise<{ studentId: string }> }) {
+  const { studentId } = await params;
+  const supabase = await createServerSupabaseClient()
 
   // Fetch Student Basic Info
   const { data: student, error: studentError } = await supabase
     .from('students')
     .select('*')
-    .eq('id', params.studentId)
+    .eq('id', studentId)
     .single()
 
   if (studentError || !student) {
@@ -23,13 +24,13 @@ export default async function StudentPortfolioPage({ params }: { params: { stude
   const { data: skills } = await supabase
     .from('student_skill_events')
     .select('*')
-    .eq('student_id', params.studentId)
+    .eq('student_id', studentId)
     .order('created_at', { ascending: false })
 
   const { data: badges } = await supabase
     .from('student_badges')
     .select('*, badges(*)')
-    .eq('student_id', params.studentId)
+    .eq('student_id', studentId)
     .order('created_at', { ascending: false })
 
   return (
@@ -40,7 +41,7 @@ export default async function StudentPortfolioPage({ params }: { params: { stude
             {student.first_name[0]}
         </div>
         <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{student.first_name}&apos;s Portfolio</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{student.first_name}'s Portfolio</h1>
             <p className="text-gray-500">Level 4 Skier • Enrolled in Weekend Warriors</p>
         </div>
       </div>

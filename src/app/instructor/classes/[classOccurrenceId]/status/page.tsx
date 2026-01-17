@@ -1,9 +1,8 @@
-
 'use client'
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter, useParams } from 'next/navigation';
 
 const STATUS_OPTIONS = [
     { value: 'meeting_point', label: 'At Meeting Point', color: 'bg-blue-500' },
@@ -14,10 +13,13 @@ const STATUS_OPTIONS = [
     { value: 'dismissed', label: 'Class Dismissed', color: 'bg-gray-500' },
 ];
 
-export default function ClassStatusPage({ params }: { params: { classOccurrenceId: string } }) {
+export default function ClassStatusPage() {
+    const params = useParams();
+    const classOccurrenceId = params.classOccurrenceId as string;
+    
     const [loading, setLoading] = useState(false);
     const [currentStatus, setCurrentStatus] = useState<string | null>(null);
-    const supabase = createClientComponentClient();
+    const supabase = createClient();
     const router = useRouter();
 
     const handleStatusUpdate = async (status: string) => {
@@ -40,7 +42,7 @@ export default function ClassStatusPage({ params }: { params: { classOccurrenceI
                  }
             }
 
-            const res = await fetch(`/api/classes/${params.classOccurrenceId}/status`, {
+            const res = await fetch(`/api/classes/${classOccurrenceId}/status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -3,8 +3,9 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import MessageThreadView from '@/components/MessageThreadView'
 import { redirect, notFound } from 'next/navigation'
 
-export default async function ThreadPage({ params }: { params: { threadId: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function ThreadPage({ params }: { params: Promise<{ threadId: string }> }) {
+  const { threadId } = await params
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -18,7 +19,7 @@ export default async function ThreadPage({ params }: { params: { threadId: strin
   const { data: messages, error } = await supabase
     .from('messages_view')
     .select('*')
-    .eq('thread_id', params.threadId)
+    .eq('thread_id', threadId)
     .order('created_at', { ascending: true })
 
   if (error) {

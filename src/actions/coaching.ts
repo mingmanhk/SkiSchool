@@ -5,7 +5,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export async function createInstructorGoal(instructorId: string, formData: FormData) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   const goal = formData.get('goal')
   if (!goal || typeof goal !== 'string') {
@@ -30,7 +30,7 @@ export async function createInstructorGoal(instructorId: string, formData: FormD
 }
 
 export async function updateInstructorGoalStatus(goalId: string, status: string, instructorId: string) {
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
 
     const { error } = await supabase
         .from('instructor_goals')

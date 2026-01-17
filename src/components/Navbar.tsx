@@ -1,17 +1,14 @@
-
 'use client';
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-
-// TODO: Create the following components
-// import Button from './Button';
+import { Button } from '@/components/ui/Button';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<any>(null);
   const supabase = createClient();
   const router = useRouter();
 
@@ -34,50 +31,50 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-gray-900 bg-opacity-80 backdrop-blur-md fixed w-full z-10 top-0">
+    <nav className="bg-white dark:bg-gray-900 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
-          <Link href="/" className="text-2xl font-bold text-white">
-            Cascade Ski School
+          <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white">
+            Ski School OS
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/programs" className="text-gray-300 hover:text-white">
+            <Link href="/programs" className="text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400">
               Programs
             </Link>
-            <Link href="/schedule" className="text-gray-300 hover:text-white">
+            <Link href="/schedule" className="text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400">
               Schedule
             </Link>
-            <Link href="/instructors" className="text-gray-300 hover:text-white">
+            <Link href="/instructors" className="text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400">
               Instructors
             </Link>
-            <Link href="/faq" className="text-gray-300 hover:text-white">
+            <Link href="/faq" className="text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400">
               FAQ
             </Link>
-            <Link href="/contact" className="text-gray-300 hover:text-white">
+            <Link href="/contact" className="text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400">
               Contact
             </Link>
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
-              <button onClick={handleLogout} className="text-gray-300 hover:text-white">
+              <Button onClick={handleLogout} variant="secondary">
                 Logout
-              </button>
+              </Button>
             ) : (
               <>
-                <Link href="/login" className="text-gray-300 hover:text-white">
-                  Login
+                <Link href="/login">
+                  <Button variant="ghost">Login</Button>
                 </Link>
-                <Link href="/signup" className="text-gray-300 hover:text-white">
-                  Sign Up
+                <Link href="/signup">
+                  <Button>Sign Up</Button>
                 </Link>
               </>
             )}
           </div>
 
           <div className="md:hidden">
-            <button onClick={toggleMenu} className="text-white focus:outline-none">
+            <button onClick={toggleMenu} className="text-gray-900 dark:text-white focus:outline-none">
               <svg
                 className="w-6 h-6"
                 fill="none"
@@ -98,35 +95,35 @@ const Navbar = () => {
 
         {isOpen && (
           <div className="md:hidden pb-4">
-            <Link href="/programs" className="block py-2 px-4 text-gray-300 hover:text-white">
+            <Link href="/programs" className="block py-2 px-4 text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400">
               Programs
             </Link>
-            <Link href="/schedule" className="block py-2 px-4 text-gray-300 hover:text-white">
+            <Link href="/schedule" className="block py-2 px-4 text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400">
               Schedule
             </Link>
-            <Link href="/instructors" className="block py-2 px-4 text-gray-300 hover:text-white">
+            <Link href="/instructors" className="block py-2 px-4 text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400">
               Instructors
             </Link>
-            <Link href="/faq" className="block py-2 px-4 text-gray-300 hover:text-white">
+            <Link href="/faq" className="block py-2 px-4 text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400">
               FAQ
             </Link>
-            <Link href="/contact" className="block py-2 px-4 text-gray-300 hover:text-white">
+            <Link href="/contact" className="block py-2 px-4 text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400">
               Contact
             </Link>
-            <div className="border-t border-gray-700 mt-4 pt-4">
+            <div className="border-t border-gray-200 dark:border-gray-700 mt-4 pt-4">
               {user ? (
-                <button onClick={handleLogout} className="block py-2 px-4 text-gray-300 hover:text-white">
+                <Button onClick={handleLogout} variant="secondary" className="w-full">
                   Logout
-                </button>
+                </Button>
               ) : (
-                <>
-                  <Link href="/login" className="block py-2 px-4 text-gray-300 hover:text-white">
-                    Login
+                <div className="flex flex-col space-y-2">
+                  <Link href="/login">
+                    <Button variant="ghost" className="w-full">Login</Button>
                   </Link>
-                  <Link href="/signup" className="block py-2 px-4 text-gray-300 hover:text-white">
-                    Sign Up
+                  <Link href="/signup">
+                    <Button className="w-full">Sign Up</Button>
                   </Link>
-                </>
+                </div>
               )}
             </div>
           </div>

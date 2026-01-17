@@ -1,7 +1,6 @@
-
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { updateSession } from '@/utils/supabase/middleware'
+import { updateSession } from '@/lib/supabase/middleware'
 
 const locales = ['en', 'zh']
 const defaultLocale = 'en'
@@ -22,6 +21,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api') || 
     pathname.startsWith('/widget') || 
     pathname.startsWith('/auth') || 
+    pathname.startsWith('/login') || 
+    pathname.startsWith('/signup') || 
     pathname.includes('.')
   ) {
     return sessionResponse

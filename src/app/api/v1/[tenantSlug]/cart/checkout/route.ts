@@ -4,13 +4,14 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16', // Use latest API version
+  apiVersion: '2023-10-16' as any, // Use latest API version
 });
 
 export async function POST(
   request: Request,
-  { params }: { params: { tenantSlug: string } }
+  { params }: { params: Promise<{ tenantSlug: string }> }
 ) {
+  const { tenantSlug } = await params;
   const body = await request.json();
   const { cartId, successUrl, cancelUrl } = body;
   const supabase = await createClient();
@@ -51,7 +52,7 @@ export async function POST(
       cancel_url: cancelUrl || `${process.env.NEXT_PUBLIC_APP_URL}/checkout/cancel`,
       metadata: {
         cartId: cartId,
-        tenantSlug: params.tenantSlug,
+        tenantSlug: tenantSlug,
       },
     });
 

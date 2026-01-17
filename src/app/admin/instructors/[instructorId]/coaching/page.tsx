@@ -3,9 +3,9 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import InstructorCoachingTab from '@/components/coaching/InstructorCoachingTab'
 import { notFound } from 'next/navigation'
 
-export default async function InstructorCoachingPage({ params }: { params: { instructorId: string } }) {
-  const supabase = createServerSupabaseClient()
-  const { instructorId } = params
+export default async function InstructorCoachingPage({ params }: { params: Promise<{ instructorId: string }> }) {
+  const supabase = await createServerSupabaseClient()
+  const { instructorId } = await params;
 
   // Fetch instructor details to confirm existence (and display name if needed)
   const { data: instructor, error: instructorError } = await supabase

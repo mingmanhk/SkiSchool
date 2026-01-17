@@ -4,8 +4,9 @@ import { NextResponse } from 'next/server';
 
 export async function POST(
   request: Request,
-  { params }: { params: { tenantSlug: string } }
+  { params }: { params: Promise<{ tenantSlug: string }> }
 ) {
+  const { tenantSlug } = await params;
   const body = await request.json();
   const { cartItemId } = body;
   const supabase = await createClient();
@@ -13,6 +14,8 @@ export async function POST(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  // Note: tenantSlug isn't explicitly used but required for route matching.
+  
   const { error } = await supabase
     .from('cart_items')
     .delete()

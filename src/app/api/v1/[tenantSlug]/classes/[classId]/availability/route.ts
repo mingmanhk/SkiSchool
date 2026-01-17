@@ -4,14 +4,15 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { tenantSlug: string; classId: string } }
+  { params }: { params: Promise<{ tenantSlug: string; classId: string }> }
 ) {
+  const { classId } = await params;
   const supabase = await createClient();
 
   const { data: classData, error } = await supabase
     .from('class_occurrences')
     .select('capacity, spots_taken')
-    .eq('id', params.classId)
+    .eq('id', classId)
     .single();
 
   if (error || !classData) {

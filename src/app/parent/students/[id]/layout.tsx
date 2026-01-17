@@ -1,11 +1,13 @@
+'use client'
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 import Image from 'next/image';
 
-export default function StudentDetailLayout({ children, params }: { children: React.ReactNode, params: { id: string } }) {
+export default function StudentDetailLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const studentId = params.id;
+  const params = useParams();
+  const studentId = params.id as string;
 
   const tabs = [
     { name: 'Schedule', href: `/parent/students/${studentId}/schedule` },

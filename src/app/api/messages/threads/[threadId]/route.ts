@@ -1,10 +1,9 @@
-
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
-export async function GET(request: Request, { params }: { params: { threadId: string } }) {
-  const supabase = createRouteHandlerClient({ cookies });
+export async function GET(request: Request, { params }: { params: Promise<{ threadId: string }> }) {
+  const { threadId } = await params;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -15,7 +14,7 @@ export async function GET(request: Request, { params }: { params: { threadId: st
   const { data: participant, error: participantError } = await supabase
     .from('thread_participants')
     .select('user_id')
-    .eq('thread_id', params.threadId)
+    .eq('thread_id', threadId)
     .eq('user_id', user.id)
     .single();
 
@@ -26,7 +25,7 @@ export async function GET(request: Request, { params }: { params: { threadId: st
   const { data, error } = await supabase
     .from('messages_view')
     .select('*')
-    .eq('thread_id', params.threadId)
+    .eq('thread_id', threadId)
     .order('created_at', { ascending: true });
 
   if (error) {
@@ -36,8 +35,9 @@ export async function GET(request: Request, { params }: { params: { threadId: st
   return NextResponse.json(data);
 }
 
-export async function POST(request: Request, { params }: { params: { threadId: string } }) {
-  const supabase = createRouteHandlerClient({ cookies });
+export async function POST(request: Request, { params }: { params: Promise<{ threadId: string }> }) {
+  const { threadId } = await params;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -50,7 +50,7 @@ export async function POST(request: Request, { params }: { params: { threadId: s
   const { data: participant, error: participantError } = await supabase
     .from('thread_participants')
     .select('*')
-    .eq('thread_id', params.threadId)
+    .eq('thread_id', threadId)
     .eq('user_id', user.id)
     .single();
 
@@ -61,7 +61,7 @@ export async function POST(request: Request, { params }: { params: { threadId: s
   const { data: message, error: messageError } = await supabase
     .from('messages')
     .insert({
-      thread_id: params.threadId,
+      thread_id: threadId,
       sender_id: user.id,
       body: body,
     })

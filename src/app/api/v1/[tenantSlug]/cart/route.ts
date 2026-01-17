@@ -4,8 +4,9 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { tenantSlug: string } }
+  { params }: { params: Promise<{ tenantSlug: string }> }
 ) {
+  await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 

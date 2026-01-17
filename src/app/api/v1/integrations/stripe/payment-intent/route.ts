@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
   // 3. Initialize Tenant-Scoped Stripe Client
   const stripe = new Stripe(integration.stripe_secret_key, {
-    apiVersion: '2023-10-16',
+    apiVersion: '2023-10-16' as any,
   });
 
   try {

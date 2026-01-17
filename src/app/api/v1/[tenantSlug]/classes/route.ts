@@ -4,8 +4,9 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { tenantSlug: string } }
+  { params }: { params: Promise<{ tenantSlug: string }> }
 ) {
+  const { tenantSlug } = await params;
   const { searchParams } = new URL(request.url);
   const date = searchParams.get('date');
   const programId = searchParams.get('programId');
@@ -13,7 +14,7 @@ export async function GET(
   const supabase = await createClient();
 
   // 1. Resolve Tenant
-  const { data: school } = await supabase.from('schools').select('id').eq('slug', params.tenantSlug).single();
+  const { data: school } = await supabase.from('schools').select('id').eq('slug', tenantSlug).single();
   if (!school) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
 
   let query = supabase

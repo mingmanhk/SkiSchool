@@ -4,8 +4,9 @@ import { NextResponse } from 'next/server';
 
 export async function POST(
   request: Request,
-  { params }: { params: { tenantSlug: string } }
+  { params }: { params: Promise<{ tenantSlug: string }> }
 ) {
+  await params;
   const { email, password, firstName, lastName } = await request.json();
   const supabase = await createClient();
 

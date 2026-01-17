@@ -6,8 +6,9 @@ import { Program } from '@/types';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { tenantSlug: string } }
+  { params }: { params: Promise<{ tenantSlug: string }> }
 ) {
+  const { tenantSlug } = await params;
   const { searchParams } = new URL(request.url);
   const lang = searchParams.get('lang') === 'zh' ? 'zh' : 'en';
   const supabase = await createClient();
@@ -16,7 +17,7 @@ export async function GET(
   const { data: school, error: schoolError } = await supabase
     .from('schools')
     .select('id')
-    .eq('slug', params.tenantSlug)
+    .eq('slug', tenantSlug)
     .single();
 
   if (schoolError || !school) {

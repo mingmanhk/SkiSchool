@@ -5,8 +5,9 @@ import { apiSuccess, apiError } from '@/lib/api/response';
 import { updateStatusSchema } from '@/lib/validation/schemas';
 import { UserRole } from '@/types';
 
-export async function POST(request: NextRequest, { params }: { params: { occurrenceId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ occurrenceId: string }> }) {
   try {
+    const { occurrenceId } = await params;
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest, { params }: { params: { occurre
     const validation = updateStatusSchema.safeParse(body);
 
     if (!validation.success) {
-        return apiError(validation.error.errors[0].message, 400);
+        return apiError(validation.error.issues[0].message, 400);
     }
 
     const { status, latitude, longitude } = validation.data;
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest, { params }: { params: { occurre
     const { data, error } = await supabase
         .from('class_status_events')
         .insert({
-        class_occurrence_id: params.occurrenceId,
+        class_occurrence_id: occurrenceId,
         instructor_id: user.id,
         status: status,
         latitude: latitude,

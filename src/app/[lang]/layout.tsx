@@ -16,15 +16,16 @@ export const metadata: Metadata = {
   description: "Ski School Operations Platform",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
   params
 }: {
   children: React.ReactNode;
-  params: { lang: string };
+  params: Promise<{ lang: string }>;
 }) {
+  const { lang } = await params
   return (
-    <html lang={params.lang}>
+    <html lang={lang}>
       <body className={inter.className}>{children}</body>
     </html>
   );

@@ -6,9 +6,10 @@ import { apiSuccess, apiError } from '@/lib/api/response';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { tenantSlug: string } }
+  { params }: { params: Promise<{ tenantSlug: string }> }
 ) {
   try {
+    await params; // Await params even if unused
     const body = await request.json();
     const { classOccurrenceId, studentId, lang } = body;
     const locale = lang === 'zh' ? 'zh' : 'en';

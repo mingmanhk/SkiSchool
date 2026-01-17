@@ -1,4 +1,3 @@
-
 {
   "common": {
     "loading": "加载中...",
@@ -44,19 +43,25 @@
     "parent": "家长"
   },
   "auth": {
-    "login_title": "登录 Ski School OS",
-    "email": "电子邮箱",
-    "password": "密码",
-    "forgot_password": "忘记密码？",
-    "no_account": "还没有账号？",
-    "signup_link": "点击注册",
-    "verify_email": "请验证您的邮箱",
-    "reset_password": "重置密码",
-    "signup_title": "创建账号",
-    "full_name": "全名",
-    "phone": "电话号码",
-    "role": "我是...",
-    "terms_agreement": "我同意服务条款"
+    "welcomeBack": "欢迎回来！",
+    "signInMessage": "登录以管理您家庭的滑雪学校体验。",
+    "continueWithGoogle": "使用 Google 继续",
+    "orContinueWithEmail": "或使用电子邮件继续",
+    "emailLabel": "电子邮件",
+    "passwordLabel": "密码",
+    "signInButton": "登录",
+    "noAccount": "没有帐户？",
+    "signUpLink": "注册",
+    "signInError": "无法验证用户。请检查您的凭据。",
+    "googleSignInError": "无法使用 Google 登录。",
+    "loading": "加载中...",
+    "createAccount": "创建您的帐户",
+    "signUpMessage": "加入以管理您家庭的冒险。",
+    "signUpButton": "注册",
+    "hasAccount": "已经有帐户了？",
+    "signInLink": "登录",
+    "signUpError": "无法创建帐户。请再试一次。",
+    "signUpSuccessMessage": "成功！请检查您的电子邮件以确认您的帐户。"
   },
   "program": {
     "title": "课程项目",

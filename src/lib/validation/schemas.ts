@@ -1,19 +1,42 @@
-
+// src/lib/validation/schemas.ts
 import { z } from 'zod';
 
-export const addToCartSchema = z.object({
-  classOccurrenceId: z.string().uuid(),
-  studentId: z.string().uuid(),
-  lang: z.enum(['en', 'zh']).optional().default('en'),
+/**
+ * Base schema for UUIDs to ensure consistent validation.
+ */
+export const UUIDSchema = z.string().uuid({ message: "Invalid UUID format." });
+
+/**
+ * Schema for validating the parameters in the student portfolio GET/POST request.
+ */
+export const StudentPortfolioParamsSchema = z.object({
+  id: UUIDSchema,
 });
 
-export const createGoalSchema = z.object({
-  goal: z.string().min(5, "Goal must be at least 5 characters"),
-  instructorId: z.string().uuid(),
+/**
+ * Schema for validating the POST body when adding a new skill event.
+ */
+export const AddSkillEventSchema = z.object({
+  type: z.literal('skill'),
+  skill: z.string().min(1, { message: "Skill name cannot be empty." }).max(100),
+  note: z.string().max(500).optional(),
 });
 
-export const updateStatusSchema = z.object({
-    status: z.enum(['meeting_point', 'on_lift', 'skiing', 'break', 'returning', 'dismissed']),
-    latitude: z.number().nullable().optional(),
-    longitude: z.number().nullable().optional(),
+/**
+ * Schema for validating the POST body when awarding a new badge.
+ */
+export const AddBadgeEventSchema = z.object({
+  type: z.literal('badge'),
+  badge_id: UUIDSchema,
 });
+
+/**
+ * A discriminated union to handle different POST body types for the portfolio API.
+ * This ensures that the body matches one of the expected shapes.
+ */
+export const StudentPortfolioPostBodySchema = z.discriminatedUnion("type", [
+  AddSkillEventSchema,
+  AddBadgeEventSchema,
+]);
+
+// Add other validation schemas for the application below
