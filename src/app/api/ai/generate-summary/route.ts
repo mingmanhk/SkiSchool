@@ -1,5 +1,5 @@
 
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { generateCoachingSummary } from '@/lib/ai/coaching';
 
@@ -11,34 +11,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // TODO: Add RBAC check (Only Directors/Admins)
+  const { instructorId, month, year } = await request.json();
 
-  const { instructorId, month } = await request.json();
+  // TODO: Fetch instructor name, goals, and feedback from the database
+  const instructorName = "John Doe";
+  const goals = ["Improve carving technique", "Get certified for level 2"];
+  const feedback = ["John is great with kids", "John needs to be more punctual"];
 
-  // 1. Fetch Instructor Data
-  const { data: instructor } = await supabase.from('users').select('first_name, last_name').eq('id', instructorId).single();
-  
-  // 2. Fetch Goals & Feedback (Simplified queries)
-  const { data: goalsData } = await supabase.from('instructor_goals').select('goal').eq('instructor_id', instructorId).eq('status', 'active');
-  const goals = goalsData?.map(g => g.goal) || [];
-
-  // Mock feedback fetching for now (would query instructor_feedback table)
-  const feedback = ["Great with kids", "Needs to improve carving demos"];
-
-  // 3. Generate AI Summary
-  const aiResult = await generateCoachingSummary(
-    `${instructor?.first_name} ${instructor?.last_name}`,
-    month,
-    goals,
-    feedback
-  );
-
-  if (!aiResult) {
-      return NextResponse.json({ error: 'AI generation failed' }, { status: 500 });
+  try {
+    const summary = await generateCoachingSummary(instructorName, month, goals, feedback);
+    return NextResponse.json({ summary });
+  } catch (error) {
+    console.error('AI Summary Error:', error);
+    return NextResponse.json({ error: 'Failed to generate summary' }, { status: 500 });
   }
-
-  // 4. Save to Database (Mock - usually insert into instructor_monthly_summaries)
-  // await supabase.from('instructor_monthly_summaries').insert({ ... })
-
-  return NextResponse.json(aiResult);
 }

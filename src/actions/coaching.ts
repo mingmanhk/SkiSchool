@@ -1,36 +1,35 @@
 
 'use server'
 
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export async function createInstructorGoal(instructorId: string, formData: FormData) {
-  const supabase = await createServerSupabaseClient()
-
+  const supabase = await createAdminClient()
   const goal = formData.get('goal')
-  if (!goal || typeof goal !== 'string') {
-      return { error: 'Goal is required' }
-  }
 
-  const { error } = await supabase.from('instructor_goals').insert([
-    {
-      instructor_id: instructorId,
-      goal: goal,
-      status: 'active'
-    },
-  ])
+  if (!goal) return
+
+  const { error } = await supabase.from('instructor_goals').insert({
+    instructor_id: instructorId,
+    goal: goal.toString(),
+  })
 
   if (error) {
     console.error('Error creating goal:', error)
-    return { error: 'Failed to create goal' }
+    return
   }
-
+  
   revalidatePath(`/admin/instructors/${instructorId}/coaching`)
-  return { success: true }
 }
 
 export async function updateInstructorGoalStatus(goalId: string, status: string, instructorId: string) {
-    const supabase = await createServerSupabaseClient()
+    if (!['active', 'completed', 'archived'].includes(status)) {
+        console.error('Invalid status update for goal')
+        return
+    }
+
+    const supabase = await createAdminClient()
 
     const { error } = await supabase
         .from('instructor_goals')
@@ -39,9 +38,8 @@ export async function updateInstructorGoalStatus(goalId: string, status: string,
 
     if (error) {
         console.error('Error updating goal status:', error)
-        return { error: 'Failed to update goal status' }
+        return
     }
 
     revalidatePath(`/admin/instructors/${instructorId}/coaching`)
-    return { success: true }
 }

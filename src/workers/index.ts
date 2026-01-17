@@ -1,6 +1,6 @@
 
 import cron from 'node-cron';
-import { createClient } from '@/utils/supabase/server'; // Note: In a real worker, you'd use the Service Role client directly
+import { createClient } from '@/lib/supabase/server'; // Note: In a real worker, you'd use the Service Role client directly
 import { generateCoachingSummary } from '@/lib/ai/coaching';
 
 // Initialize Supabase Service Role Client (Mock setup for this file structure)

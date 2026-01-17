@@ -1,50 +1,30 @@
 
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { NextRequest } from 'next/server';
 import { apiSuccess, apiError } from '@/lib/api/response';
 import { Program } from '@/types';
 
-export async function GET(
+export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ tenantSlug: string }> }
+  { params }: { params: { tenantSlug: string } }
 ) {
-  const { tenantSlug } = await params;
-  const { searchParams } = new URL(request.url);
-  const lang = searchParams.get('lang') === 'zh' ? 'zh' : 'en';
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  // 1. Resolve Tenant Slug to School ID
-  const { data: school, error: schoolError } = await supabase
-    .from('schools')
-    .select('id')
-    .eq('slug', tenantSlug)
-    .single();
-
-  if (schoolError || !school) {
-    return apiError('Tenant not found', 404);
+  if (!user) {
+    return apiError('Unauthorized', 401);
   }
 
-  // 2. Fetch Programs with strict typing via Generics (if Supabase types were generated)
-  // For now, we manually map to our strict Program interface
-  const { data: programs, error } = await supabase
-    .from('programs')
-    .select('*')
-    .eq('school_id', school.id)
-    .eq('active', true);
+  // Add logic to check user role and permissions for the tenant
+
+  const body = await request.json();
+  const { error } = await supabase.from('programs').insert([
+    { ...body, tenant_slug: params.tenantSlug }
+  ]);
 
   if (error) {
     return apiError(error.message, 500);
   }
 
-  // 3. Localize Response using strict interface
-  const localizedPrograms = programs.map((p: any) => ({
-    id: p.id,
-    name: lang === 'zh' ? (p.name_zh || p.name_en) : (p.name_en || p.name_zh),
-    description: lang === 'zh' ? (p.description_zh || p.description_en) : (p.description_en || p.description_zh),
-    min_age: p.min_age,
-    max_age: p.max_age,
-    price: p.price_cents,
-  }));
-
-  return apiSuccess(localizedPrograms);
+  return apiSuccess('Program created successfully');
 }

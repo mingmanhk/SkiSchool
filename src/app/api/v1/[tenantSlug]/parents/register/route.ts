@@ -1,32 +1,34 @@
 
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ tenantSlug: string }> }
+  { params }: { params: { tenantSlug: string } }
 ) {
-  await params;
-  const { email, password, firstName, lastName } = await request.json();
   const supabase = await createClient();
+  const { email, password, ...profileData } = await request.json();
 
-  // 1. Sign Up
-  const { data: authData, error: authError } = await supabase.auth.signUp({
+  const { data: { user }, error } = await supabase.auth.signUp({
     email,
     password,
-    options: {
-      data: {
-        first_name: firstName,
-        last_name: lastName,
-        role: 'PARENT'
-      }
-    }
   });
 
-  if (authError) {
-    return NextResponse.json({ error: authError.message }, { status: 400 });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  // 2. Create Public Profile (Handled by Trigger, but we can verify or return success)
-  return NextResponse.json({ message: "Registration successful. Please check your email to verify account." });
+  if (user) {
+    const { error: profileError } = await supabase
+      .from('user_profiles')
+      .update({ ...profileData, tenant_slug: params.tenantSlug })
+      .eq('id', user.id);
+
+    if (profileError) {
+      // Handle profile update error, maybe delete the user
+      return NextResponse.json({ error: profileError.message }, { status: 500 });
+    }
+  }
+
+  return NextResponse.json({ user });
 }

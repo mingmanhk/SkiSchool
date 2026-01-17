@@ -1,3 +1,4 @@
+
 // src/lib/validation/schemas.ts
 import { z } from 'zod';
 
@@ -38,5 +39,10 @@ export const StudentPortfolioPostBodySchema = z.discriminatedUnion("type", [
   AddSkillEventSchema,
   AddBadgeEventSchema,
 ]);
+
+export const UpdateStudentStatusSchema = z.object({
+  student_id: UUIDSchema,
+  status: z.enum(['present', 'absent', 'late']),
+});
 
 // Add other validation schemas for the application below

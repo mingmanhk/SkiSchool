@@ -1,5 +1,5 @@
 
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import RegistryFilter from '@/components/registry/RegistryFilter'
 import RegistryTable from '@/components/registry/RegistryTable'
 
@@ -9,7 +9,7 @@ export default async function AdminRegistryPage({
   searchParams: Promise<{ date?: string; programId?: string; instructorId?: string }>
 }) {
   const params = await searchParams
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createAdminClient()
   
   // Default to today if no date selected
   const date = params.date || new Date().toISOString().split('T')[0]

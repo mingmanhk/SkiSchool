@@ -1,29 +1,19 @@
 
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ tenantSlug: string }> }
+  { params }: { params: { tenantSlug: string } }
 ) {
-  const { tenantSlug } = await params;
-  const body = await request.json();
-  const { cartItemId } = body;
   const supabase = await createClient();
-
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  // Note: tenantSlug isn't explicitly used but required for route matching.
-  
-  const { error } = await supabase
-    .from('cart_items')
-    .delete()
-    .eq('id', cartItemId)
-    // RLS will ensure user owns the cart, but explicit check on cart parent_id is safer
-    .eq('cart_id', (await supabase.from('cart_items').select('cart_id').eq('id', cartItemId).single()).data?.cart_id);
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const { item_id } = await request.json();
 
-  return NextResponse.json({ success: true });
+  // Logic to remove item from cart
 }
