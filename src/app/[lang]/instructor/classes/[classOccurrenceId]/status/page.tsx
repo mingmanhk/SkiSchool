@@ -1,11 +1,12 @@
 
 'use client'
 
-import { useState } from 'react';
+import { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/i18n/client';
 
-export default function ClassStatusPage({ params }: { params: { classOccurrenceId: string, lang: string } }) {
+export default function ClassStatusPage({ params }: { params: Promise<{ classOccurrenceId: string, lang: string }> }) {
+    const { classOccurrenceId } = use(params);
     const { t } = useTranslation()
     const [loading, setLoading] = useState(false);
     const [currentStatus, setCurrentStatus] = useState<string | null>(null);
@@ -39,7 +40,7 @@ export default function ClassStatusPage({ params }: { params: { classOccurrenceI
                  }
             }
 
-            const res = await fetch(`/api/classes/${params.classOccurrenceId}/status`, {
+            const res = await fetch(`/api/classes/${classOccurrenceId}/status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

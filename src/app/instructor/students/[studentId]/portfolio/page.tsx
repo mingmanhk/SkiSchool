@@ -1,17 +1,18 @@
 
 'use client'
 
-import { useState } from 'react';
+import { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function InstructorPortfolioPage({ params }: { params: { studentId: string } }) {
+export default function InstructorPortfolioPage({ params }: { params: Promise<{ studentId: string }> }) {
+    const { studentId } = use(params);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     const handleAddSkill = async (skillName: string) => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/students/${params.studentId}/portfolio`, {
+            const res = await fetch(`/api/students/${studentId}/portfolio`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ type: 'skill', skill: skillName })
@@ -58,7 +59,7 @@ export default function InstructorPortfolioPage({ params }: { params: { studentI
             </div>
 
             <div className="p-4 bg-gray-50 rounded text-center">
-                <a href={`/parent/children/${params.studentId}/portfolio`} className="text-blue-600 underline text-sm">
+                <a href={`/parent/children/${studentId}/portfolio`} className="text-blue-600 underline text-sm">
                     View Public Portfolio
                 </a>
             </div>

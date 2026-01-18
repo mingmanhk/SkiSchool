@@ -4,12 +4,13 @@
 
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, use } from 'react';
 import Link from 'next/link';
 import { useTranslation } from '@/i18n/client';
 import { Button } from '@/components/ui/Button';
 
-export default function SignupPage({ params: { lang } }: { params: { lang: string } }) {
+export default function SignupPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = use(params);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);

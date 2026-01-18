@@ -6,8 +6,9 @@ import { Program } from '@/types';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { tenantSlug: string } }
+  { params }: { params: Promise<{ tenantSlug: string }> }
 ) {
+  const { tenantSlug } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -19,7 +20,7 @@ export async function POST(
 
   const body = await request.json();
   const { error } = await supabase.from('programs').insert([
-    { ...body, tenant_slug: params.tenantSlug }
+    { ...body, tenant_slug: tenantSlug }
   ]);
 
   if (error) {

@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState } from 'react';
+import { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 
 const program = {
@@ -17,7 +17,8 @@ const program = {
   endDate: '2024-07-19',
 };
 
-export default function ProgramDetailPage({ params }: { params: { id: string } }) {
+export default function ProgramDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const [selectedStudent, setSelectedStudent] = useState('');
 
@@ -27,7 +28,7 @@ export default function ProgramDetailPage({ params }: { params: { id: string } }
       return;
     }
     // Logic to enroll the selected student in the program
-    console.log(`Enrolling student ${selectedStudent} in program ${params.id}`);
+    console.log(`Enrolling student ${selectedStudent} in program ${id}`);
     router.push('/parent/enrollments');
   };
 

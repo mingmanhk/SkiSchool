@@ -1,12 +1,6 @@
 
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
-// Ensure OPENAI_API_KEY is set in your .env.local
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function generateCoachingSummary(
   instructorName: string,
   month: string,
@@ -22,6 +16,10 @@ export async function generateCoachingSummary(
           actions: ["Attend carving clinic"]
       };
   }
+
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
 
   const prompt = `
     You are an expert Ski School Director. 

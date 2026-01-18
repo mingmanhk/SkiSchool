@@ -4,13 +4,14 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { tenantSlug: string } }
+  { params }: { params: Promise<{ tenantSlug: string }> }
 ) {
+  const { tenantSlug } = await params;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('classes')
     .select('*')
-    .eq('tenant_slug', params.tenantSlug);
+    .eq('tenant_slug', tenantSlug);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

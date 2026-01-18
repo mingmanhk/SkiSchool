@@ -3,12 +3,13 @@ import { getDictionary } from '@/i18n/server'
 import Footer from '../components/Footer'
 import Navbar from '../components/Navbar'
 
-export default async function TermsPage({ params }: { params: { lang: string } }) {
-  const isZh = params.lang === 'zh'
+export default async function TermsPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params
+  const isZh = lang === 'zh'
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar lang={params.lang} />
+      <Navbar lang={lang} />
       <main className="container mx-auto px-6 py-12 max-w-4xl">
         <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">
           {isZh ? '服务条款' : 'Terms and Conditions'}
@@ -41,7 +42,7 @@ export default async function TermsPage({ params }: { params: { lang: string } }
           </p>
         </div>
       </main>
-      <Footer lang={params.lang} />
+      <Footer lang={lang} />
     </div>
   )
 }

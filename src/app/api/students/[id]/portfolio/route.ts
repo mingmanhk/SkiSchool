@@ -72,11 +72,12 @@ async function isAuthorized(supabase: SupabaseClient, studentId: string) {
 // =====================================================
 // GET Handler
 // =====================================================
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
+  const resolvedParams = await params;
 
   // 1. Validate Input
-  const validation = StudentPortfolioParamsSchema.safeParse(params);
+  const validation = StudentPortfolioParamsSchema.safeParse(resolvedParams);
   if (!validation.success) {
     const errorMessages = validation.error.flatten().fieldErrors;
     return createErrorResponse(JSON.stringify(errorMessages), 400);
@@ -116,11 +117,12 @@ export async function GET(request: Request, { params }: { params: { id: string }
 // =====================================================
 // POST Handler
 // =====================================================
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
+  const resolvedParams = await params;
 
   // 1. Validate Route Params
-  const paramsValidation = StudentPortfolioParamsSchema.safeParse(params);
+  const paramsValidation = StudentPortfolioParamsSchema.safeParse(resolvedParams);
   if (!paramsValidation.success) {
     const errorMessages = paramsValidation.error.flatten().fieldErrors;
     return createErrorResponse(JSON.stringify(errorMessages), 400);

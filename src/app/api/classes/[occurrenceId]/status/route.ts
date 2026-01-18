@@ -5,7 +5,8 @@ import { apiSuccess, apiError } from '@/lib/api/response';
 import { UpdateStudentStatusSchema } from '@/lib/validation/schemas';
 import { UserRole } from '@/types';
 
-export async function POST(request: NextRequest, { params }: { params: { occurrenceId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ occurrenceId: string }> }) {
+  const { occurrenceId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest, { params }: { params: { occurre
   const { error } = await supabase
     .from('class_roster')
     .update({ status })
-    .eq('occurrence_id', params.occurrenceId)
+    .eq('occurrence_id', occurrenceId)
     .eq('student_id', student_id);
 
   if (error) {

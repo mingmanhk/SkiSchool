@@ -4,8 +4,9 @@ import { NextResponse } from 'next/server';
 
 export async function POST(
   request: Request,
-  { params }: { params: { tenantSlug: string } }
+  { params }: { params: Promise<{ tenantSlug: string }> }
 ) {
+  const { tenantSlug } = await params;
   const supabase = await createClient();
   const { email, password, ...profileData } = await request.json();
 
@@ -21,7 +22,7 @@ export async function POST(
   if (user) {
     const { error: profileError } = await supabase
       .from('user_profiles')
-      .update({ ...profileData, tenant_slug: params.tenantSlug })
+      .update({ ...profileData, tenant_slug: tenantSlug })
       .eq('id', user.id);
 
     if (profileError) {
