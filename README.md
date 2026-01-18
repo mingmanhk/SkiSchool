@@ -48,6 +48,19 @@ The complete operating system for modern ski schools. A multi-tenant platform ma
     npm run dev
     ```
 
+## 🌐 Deployment
+
+Deployed on Vercel with Middleware for i18n routing.
+
+- **Production URL:** [https://ski-school.vercel.app](https://ski-school.vercel.app)
+- **Supported Languages:** English (`/en`), Chinese (`/zh`)
+
+## 🔄 Recent Updates
+
+- **Landing Page Redesign:** A modern, high-conversion landing page with 3D elements and improved UX.
+- **Build Stabilization:** Fixed SSR crashes and environment variable handling for robust deployments.
+- **Architecture Improvements:** Optimized middleware routing and layout structure for better performance and SEO.
+
 ## 🔒 Security
 
 This project uses Row Level Security (RLS) to ensure data isolation.
