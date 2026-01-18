@@ -45,5 +45,5 @@ export const env = createEnv({
    * This is especially useful for Docker builds and Linting where checking the env variables
    * isn't necessary.
    */
-  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION || process.env.npm_lifecycle_event === 'build',
 });
