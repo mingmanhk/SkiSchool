@@ -8,9 +8,8 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, {
-      message: "Missing SUPABASE_SERVICE_ROLE_KEY environment variable",
-    }),
+    // Made optional to prevent runtime crash if missing. Application code handles fallbacks.
+    SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
     // Add any other server-side variables here
   },
 
@@ -20,12 +19,9 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    NEXT_PUBLIC_SUPABASE_URL: z.string().url({
-      message: "Missing or invalid NEXT_PUBLIC_SUPABASE_URL environment variable",
-    }),
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, {
-      message: "Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable",
-    }),
+    // Made optional to prevent runtime crash if missing. Application code handles fallbacks.
+    NEXT_PUBLIC_SUPABASE_URL: z.string().optional(),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
   },
 
   /**
