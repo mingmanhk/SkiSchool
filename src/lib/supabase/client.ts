@@ -11,8 +11,9 @@ import { env } from '@/lib/env';
  * @returns {SupabaseClient} An instance of the Supabase client.
  */
 export function createClient() {
-  return createBrowserClient(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+  // During build, env vars might be missing. Provide fallbacks to prevent build failure.
+  const url = env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+  const key = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
+
+  return createBrowserClient(url, key);
 }
