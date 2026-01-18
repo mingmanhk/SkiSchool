@@ -37,9 +37,18 @@ export async function middleware(request: NextRequest) {
     const locale = defaultLocale // In a real app, detect from headers 'accept-language'
     
     // Redirect to the same path with locale prefix
-    return NextResponse.redirect(
+    const redirectResponse = NextResponse.redirect(
       new URL(`/${locale}${pathname}`, request.url)
     )
+
+    // Copy cookies from sessionResponse (Supabase auth) to the redirect response
+    // to ensure we don't lose session updates (like token refreshes)
+    const cookiesToSet = sessionResponse.cookies.getAll()
+    cookiesToSet.forEach(cookie => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+    })
+    
+    return redirectResponse
   }
 
   return sessionResponse

@@ -24,9 +24,10 @@ export default async function RootLayout({
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params
+  // Removed html and body tags to prevent nesting with the root layout
   return (
-    <html lang={lang}>
-      <body className={inter.className}>{children}</body>
-    </html>
+    <div className={`lang-root ${inter.className}`}>
+      {children}
+    </div>
   );
 }
