@@ -3,52 +3,64 @@ import Link from 'next/link';
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div className="col-span-1 md:col-span-1">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Ski School OS</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-              The complete management platform for ski schools, clubs, and race programs.
+    <footer className="bg-gray-900 text-white pt-20 pb-10">
+      <div className="container mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+          <div className="space-y-6">
+            <h3 className="text-2xl font-extrabold tracking-tight">Ski School OS</h3>
+            <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
+              The modern operating system for ski schools, clubs, and race teams. Streamline your snow sports business today.
             </p>
+            <div className="flex space-x-4">
+              {/* Social Icons */}
+              <a href="#" className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary-600 hover:text-white transition-all">
+                <span className="sr-only">Twitter</span>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>
+              </a>
+              <a href="#" className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary-600 hover:text-white transition-all">
+                <span className="sr-only">LinkedIn</span>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+              </a>
+            </div>
           </div>
 
           <div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-4">Product</h4>
-            <ul className="space-y-3 text-sm">
-              <li><Link href="#features" className="text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition">Features</Link></li>
-              <li><Link href="#pricing" className="text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition">Pricing</Link></li>
-              <li><Link href="/contact" className="text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition">Request Demo</Link></li>
-              <li><Link href="/docs" className="text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition">Documentation</Link></li>
+            <h4 className="font-bold text-lg mb-6">Product</h4>
+            <ul className="space-y-4 text-sm text-gray-400">
+              <li><Link href="#features" className="hover:text-primary-400 transition-colors">Features</Link></li>
+              <li><Link href="#pricing" className="hover:text-primary-400 transition-colors">Pricing</Link></li>
+              <li><Link href="/integrations" className="hover:text-primary-400 transition-colors">Integrations</Link></li>
+              <li><Link href="/changelog" className="hover:text-primary-400 transition-colors">Changelog</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-4">Company</h4>
-            <ul className="space-y-3 text-sm">
-              <li><Link href="/about" className="text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition">About Us</Link></li>
-              <li><Link href="/contact" className="text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition">Contact</Link></li>
-              <li><Link href="/login" className="text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition">Tenant Login</Link></li>
+            <h4 className="font-bold text-lg mb-6">Resources</h4>
+            <ul className="space-y-4 text-sm text-gray-400">
+              <li><Link href="/blog" className="hover:text-primary-400 transition-colors">Blog</Link></li>
+              <li><Link href="/docs" className="hover:text-primary-400 transition-colors">Documentation</Link></li>
+              <li><Link href="/help" className="hover:text-primary-400 transition-colors">Help Center</Link></li>
+              <li><Link href="/contact" className="hover:text-primary-400 transition-colors">Contact Support</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-4">Legal</h4>
-            <ul className="space-y-3 text-sm">
-              <li><Link href="/privacy" className="text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition">Terms of Service</Link></li>
+            <h4 className="font-bold text-lg mb-6">Legal</h4>
+            <ul className="space-y-4 text-sm text-gray-400">
+              <li><Link href="/privacy" className="hover:text-primary-400 transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-primary-400 transition-colors">Terms of Service</Link></li>
+              <li><Link href="/security" className="hover:text-primary-400 transition-colors">Security</Link></li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-gray-200 dark:border-gray-800 pt-8 mt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-gray-500 dark:text-gray-500 text-center md:text-left">
+        <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-sm text-gray-500 text-center md:text-left">
             &copy; {new Date().getFullYear()} Ski School OS. All rights reserved.
           </p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-             {/* Social placeholders */}
-             <a href="#" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"><span className="sr-only">Twitter</span>🐦</a>
-             <a href="#" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"><span className="sr-only">LinkedIn</span>💼</a>
+          <div className="flex items-center gap-2 mt-4 md:mt-0 text-xs text-gray-500">
+             <div className="w-2 h-2 rounded-full bg-green-500"></div>
+             All systems operational
           </div>
         </div>
       </div>
