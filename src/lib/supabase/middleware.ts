@@ -12,36 +12,54 @@ export async function updateSession(request: NextRequest) {
   const url = env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
   const key = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
 
-  const supabase = createServerClient(
-    url,
-    key,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
+  // If we are using placeholders, skip supabase client creation to avoid errors
+  if (url === 'https://placeholder.supabase.co' || key === 'placeholder') {
+    return supabaseResponse;
+  }
+
+  let supabase;
+  try {
+    supabase = createServerClient(
+      url,
+      key,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              request.cookies.set(name, value)
+            );
+            supabaseResponse = NextResponse.next({
+              request,
+            });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options)
+            );
+          },
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+      }
+    );
+  } catch (error) {
+    console.error('Error creating Supabase client in middleware:', error);
+    return supabaseResponse;
+  }
 
   // IMPORTANT: Avoid writing any logic between createServerClient and
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const {
+      data: { user: supabaseUser },
+    } = await supabase.auth.getUser();
+    user = supabaseUser;
+  } catch (error) {
+    console.error('Error getting user in middleware:', error);
+    // Treat as logged out
+  }
 
   // Define public routes that don't require authentication
   const publicRoutes = [
