@@ -8,3 +8,5 @@ if (typeof __dirname === 'undefined') {
 if (typeof __filename === 'undefined') {
   (globalThis as any).__filename = '';
 }
+
+export {};
