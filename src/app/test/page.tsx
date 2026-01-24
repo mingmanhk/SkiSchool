@@ -5,7 +5,7 @@ export default function TestPage() {
     <div style={{ padding: '50px', fontFamily: 'system-ui, sans-serif' }}>
       <h1>Test Page</h1>
       <p>This is a static test page to verify Vercel deployment.</p>
-      <p>Time: {new Date().toISOString()}</p>
+      <p>Deployment Test Timestamp: {new Date().toISOString()}</p>
       <p>Environment Check:</p>
       <ul>
         <li>NODE_ENV: {process.env.NODE_ENV}</li>
