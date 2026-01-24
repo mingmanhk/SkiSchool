@@ -10,6 +10,15 @@ const nextConfig = {
     // your project has TypeScript errors.
     ignoreBuildErrors: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/redirect-test',
+        destination: '/test',
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
