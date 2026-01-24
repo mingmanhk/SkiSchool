@@ -1,6 +1,6 @@
-import './src/polyfill';
+import './polyfill';
 import { NextResponse, type NextRequest } from 'next/server';
-import { updateSession } from './src/lib/supabase/middleware';
+import { updateSession } from './lib/supabase/middleware';
 
 const locales = ['en', 'zh'];
 const defaultLocale = 'en';
