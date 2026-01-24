@@ -14,6 +14,7 @@ export async function updateSession(request: NextRequest) {
 
   // If we are using placeholders, skip supabase client creation to avoid errors
   if (url === 'https://placeholder.supabase.co' || key === 'placeholder') {
+    console.warn('Supabase credentials missing in middleware. Using placeholders. Auth will not work.');
     return supabaseResponse;
   }
 
