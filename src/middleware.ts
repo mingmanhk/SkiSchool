@@ -6,9 +6,11 @@ const locales = ['en', 'zh'];
 const defaultLocale = 'en';
 
 export async function middleware(request: NextRequest) {
+  console.log(`Middleware Request: ${request.method} ${request.nextUrl.pathname}`);
   try {
     // 1. Redirect root to default locale
     if (request.nextUrl.pathname === '/') {
+      console.log('Redirecting root to /' + defaultLocale);
       const url = request.nextUrl.clone();
       url.pathname = `/${defaultLocale}`;
       return NextResponse.redirect(url);
