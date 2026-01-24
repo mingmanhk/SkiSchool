@@ -1,10 +1,6 @@
+import './src/polyfill';
 import { NextResponse, type NextRequest } from 'next/server';
 import { updateSession } from './src/lib/supabase/middleware';
-
-// Polyfill __dirname for Edge Runtime as some dependencies might rely on it
-if (typeof __dirname === 'undefined') {
-  (globalThis as any).__dirname = '';
-}
 
 export async function middleware(request: NextRequest) {
   try {
