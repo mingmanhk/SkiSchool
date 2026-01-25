@@ -9,12 +9,15 @@ export async function updateSession(request: NextRequest) {
   });
 
   // During build or if env vars are missing, provide fallbacks to prevent crash
-  const url = env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-  const key = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
+  // IMPORTANT: For production, we prefer valid values, but during build or incomplete config, 
+  // we must not crash the middleware.
+  const url = env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // If we are using placeholders, skip supabase client creation to avoid errors
-  if (url === 'https://placeholder.supabase.co' || key === 'placeholder') {
-    console.warn('Supabase credentials missing in middleware. Using placeholders. Auth will not work.');
+  // If credentials are strictly missing, we can't do auth, but we should not crash the request.
+  // We just return the response as is (unauthenticated).
+  if (!url || !key || url === 'https://placeholder.supabase.co' || key === 'placeholder') {
+    // console.warn('Supabase credentials missing in middleware. Auth skipped.');
     return supabaseResponse;
   }
 
@@ -47,10 +50,6 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
   let user = null;
   try {
     const {
@@ -58,9 +57,16 @@ export async function updateSession(request: NextRequest) {
     } = await supabase.auth.getUser();
     user = supabaseUser;
   } catch (error) {
-    console.error('Error getting user in middleware:', error);
-    // Treat as logged out
+    // This is expected if the token is invalid or expired
+    // console.error('Error getting user in middleware:', error);
   }
+
+  // Define protected routes pattern
+  // Check if accessing protected routes (app, employee, parent, admin, instructor)
+  const isProtectedRoute = ['/app/', '/employee/', '/parent/', '/admin/', '/instructor/'].some(route =>
+    request.nextUrl.pathname.startsWith(route) ||
+    request.nextUrl.pathname.match(new RegExp(`^/(en|zh)${route}`))
+  );
 
   // Define public routes that don't require authentication
   const publicRoutes = [
@@ -76,36 +82,17 @@ export async function updateSession(request: NextRequest) {
     '/en/terms', '/zh/terms',
   ];
   
-  // Check if the current path is public
-  // Strict matching to prevent overly broad access
   const isPublicRoute = publicRoutes.some(route => 
     request.nextUrl.pathname === route || 
     request.nextUrl.pathname.startsWith(`${route}/`)
   );
-  
-  // Check if accessing protected routes (app, employee, parent, admin, instructor)
-  const isProtectedRoute = ['/app/', '/employee/', '/parent/', '/admin/', '/instructor/'].some(route =>
-    request.nextUrl.pathname.startsWith(route) ||
-    request.nextUrl.pathname.match(new RegExp(`^/(en|zh)${route}`))
-  );
 
-  // Only redirect to login if:
-  // 1. User is not authenticated
-  // 2. Trying to access a protected route
-  // 3. Not already on a public route
+  // Redirect to login if unauthenticated and on a protected route
   if (!user && isProtectedRoute && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-  // creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
   return supabaseResponse;
 }

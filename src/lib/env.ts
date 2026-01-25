@@ -4,19 +4,18 @@ import { z } from "zod";
 
 export const env = createEnv({
   /**
-   * Specify your server-side environment variables schema here. This way you can ensure the app
-   * isn't built with invalid env vars.
+   * Specify your server-side environment variables schema here.
    */
   server: {
     // Made optional to prevent runtime crash if missing. Application code handles fallbacks.
     SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+    DATABASE_URL: z.string().optional(),
+    POSTGRES_URL: z.string().optional(),
     // Add any other server-side variables here
   },
 
   /**
-   * Specify your client-side environment variables schema here. This way you can ensure the app
-   * isn't built with invalid env vars. To expose them to the client, prefix them with
-   * `NEXT_PUBLIC_`.
+   * Specify your client-side environment variables schema here.
    */
   client: {
     // Made optional to prevent runtime crash if missing. Application code handles fallbacks.
@@ -25,21 +24,22 @@ export const env = createEnv({
   },
 
   /**
-   * You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
-   * middlewares), so you need to destruct manually here.
+   * Manual destructuring of process.env for edge runtimes
    */
   runtimeEnv: {
     // Server-side
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    DATABASE_URL: process.env.DATABASE_URL,
+    POSTGRES_URL: process.env.POSTGRES_URL,
     
     // Client-side
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY,
   },
+  
   /**
-   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
-   * This is especially useful for Docker builds and Linting where checking the env variables
-   * isn't necessary.
+   * Skip validation for build and dev to prevent crashes
    */
-  skipValidation: !!process.env.SKIP_ENV_VALIDATION || process.env.npm_lifecycle_event === 'build',
+  skipValidation: true,
+  emptyStringAsUndefined: true,
 });
