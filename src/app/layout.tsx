@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Ski School OS",
-  description: "Ski School Operations Platform",
+  title: "Test Page",
+  description: "One page test page",
 };
 
 export default function RootLayout({
