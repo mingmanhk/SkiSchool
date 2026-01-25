@@ -1,13 +1,17 @@
+import Navbar from '@/components/Navbar';
+import Hero from '@/components/landing/Hero';
+import Footer from '@/components/Footer';
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="relative flex place-items-center">
-        <h1 className="text-6xl font-bold text-center">Test Page</h1>
-      </div>
+    <div className="min-h-screen bg-white dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100">
+      <Navbar />
       
-       <div className="mt-8">
-            <p className="text-center">This is a fresh one-page test site.</p>
-      </div>
-    </main>
+      <main className="overflow-hidden">
+        <Hero />
+      </main>
+
+      <Footer />
+    </div>
   );
 }
