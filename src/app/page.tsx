@@ -4,6 +4,7 @@ import Footer from '@/components/Footer';
 import { createClient } from '@/utils/supabase/server';
 
 export default async function Home() {
+  console.log('[Page] Rendering Home Page');
   const supabase = createClient();
   // We don't necessarily need to await anything here for the public landing page
   // But initializing the client ensures the server utils are working.
