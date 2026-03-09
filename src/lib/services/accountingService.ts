@@ -1,7 +1,7 @@
 // AccountingService: QuickBooks OAuth and sync
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
-import { enrollments, payments } from '@/lib/db/schema_multi_tenant'
+import { enrollments, programs, payments } from '@/lib/db/schema_multi_tenant'
 import { IntegrationService } from './integrationService'
 import { decrypt } from '@/lib/utils/encryption'
 import { AuditService } from './auditService'
@@ -128,8 +128,14 @@ export class AccountingService {
     if (!config?.realmId) throw new Error('QuickBooks realmId not configured')
 
     const rows = await db
-      .select()
+      .select({
+        id: enrollments.id,
+        studentId: enrollments.studentId,
+        programId: enrollments.programId,
+        price: programs.price,
+      })
       .from(enrollments)
+      .leftJoin(programs, eq(enrollments.programId, programs.id))
       .where(eq(enrollments.id, enrollmentId))
       .limit(1)
 
@@ -137,8 +143,7 @@ export class AccountingService {
     const enrollment = rows[0]
 
     const accessToken = await this.refreshAccessToken(tenantId)
-    const amountCents = (enrollment.amountCents as number | null) ?? 0
-    const amount = (amountCents / 100).toFixed(2)
+    const amount = enrollment.price ? parseFloat(enrollment.price).toFixed(2) : '0.00'
 
     const invoice = {
       Line: [
