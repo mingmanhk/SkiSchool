@@ -1,58 +1,59 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/utils/supabase/server'
+import { PaymentService } from '@/lib/services/paymentService'
+import { createPaymentIntentSchema } from '@/lib/validation/schemas'
 
-import { createClient } from '@/utils/supabase/server';
-import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
+export const runtime = 'nodejs'
 
-export async function POST(request: Request) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+const paymentService = new PaymentService()
+
+export async function POST(req: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // 1. Get User's School ID
-  const { data: userProfile } = await supabase
-    .from('users')
-    .select('school_id')
-    .eq('id', user.id)
-    .single();
-
-  if (!userProfile?.school_id) {
-    return NextResponse.json({ error: 'No school associated' }, { status: 403 });
+  // Extract tenantSlug from x-tenant-slug header (set by middleware)
+  const tenantSlug = req.headers.get('x-tenant-slug')
+  if (!tenantSlug) {
+    return NextResponse.json({ error: 'Tenant context required' }, { status: 400 })
   }
 
-  // 2. Fetch Tenant's Stripe Key from Vault
-  const { data: integration } = await supabase
-    .from('school_integrations')
-    .select('stripe_secret_key')
-    .eq('school_id', userProfile.school_id)
-    .single();
-
-  if (!integration?.stripe_secret_key) {
-    return NextResponse.json({ error: 'Stripe not configured' }, { status: 400 });
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  // 3. Initialize Tenant-Scoped Stripe Client
-  const stripe = new Stripe(integration.stripe_secret_key, {
-    apiVersion: '2023-10-16',
-  });
+  const parsed = createPaymentIntentSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+  }
+
+  const { TenantService } = await import('@/lib/services/tenantService')
+  const tenantService = new TenantService()
+  const tenant = await tenantService.getTenantBySlug(tenantSlug)
+  if (!tenant) {
+    return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
+  }
 
   try {
-    const body = await request.json();
-    
-    // Create Payment Intent (Example)
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: body.amount,
-      currency: body.currency,
-      metadata: {
-        schoolId: userProfile.school_id,
-        userId: user.id
-      }
-    });
+    const intent = await paymentService.createPaymentIntent(tenant.id, {
+      tenantId: tenant.id,
+      amount: parsed.data.amount,
+      currency: parsed.data.currency ?? 'usd',
+      enrollmentIds: parsed.data.enrollmentIds,
+      successUrl: parsed.data.successUrl,
+      cancelUrl: parsed.data.cancelUrl,
+      customerEmail: parsed.data.customerEmail ?? user.email,
+    })
 
-    return NextResponse.json({ clientSecret: paymentIntent.client_secret });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ clientSecret: intent.clientSecret })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Payment intent failed'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

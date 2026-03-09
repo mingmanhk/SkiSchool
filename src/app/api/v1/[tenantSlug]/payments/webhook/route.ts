@@ -1,52 +1,40 @@
+import { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+import { TenantService } from '@/lib/services/tenantService'
+import { PaymentService } from '@/lib/services/paymentService'
 
-import { supabaseAdmin } from '@/lib/supabase/admin';
-import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
+const tenantService = new TenantService()
+const paymentService = new PaymentService()
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
-});
+// Stripe sends raw body — must not parse as JSON
+export const runtime = 'nodejs'
 
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ tenantSlug: string }> },
+) {
+  const { tenantSlug } = await params
 
-export async function POST(request: Request) {
-  const body = await request.text();
-  const sig = request.headers.get('stripe-signature')!;
+  const tenant = await tenantService.getTenantBySlug(tenantSlug)
+  if (!tenant) {
+    // Return 200 so Stripe doesn't retry unknown tenant webhooks
+    return NextResponse.json({ received: true })
+  }
 
-  let event: Stripe.Event;
+  const signature = request.headers.get('stripe-signature')
+  if (!signature) {
+    return NextResponse.json({ error: 'Missing stripe-signature header' }, { status: 400 })
+  }
+
+  const body = await request.arrayBuffer()
+  const rawBody = Buffer.from(body)
 
   try {
-    event = stripe.webhooks.constructEvent(body, sig, endpointSecret!);
-  } catch (err: any) {
-    return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
+    await paymentService.handleWebhook('stripe', tenant.id, rawBody, signature)
+    return NextResponse.json({ received: true })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Webhook processing failed'
+    console.error('[stripe-webhook]', message)
+    return NextResponse.json({ error: message }, { status: 400 })
   }
-
-  // Handle the event
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session;
-    const cartId = session.metadata?.cartId;
-    
-    if (cartId) {
-        // Use the Admin client to bypass RLS since this is a webhook
-        
-        // 1. Update Cart Status
-        const { error: cartError } = await supabaseAdmin
-            .from('carts')
-            .update({ status: 'CHECKED_OUT' })
-            .eq('id', cartId);
-
-        if (cartError) {
-             console.error('Error updating cart:', cartError);
-             return NextResponse.json({ error: 'Failed to update cart' }, { status: 500 });
-        }
-
-        // 2. Create Enrollments
-        // Logic: Fetch items from cart -> Insert into enrollments
-        // For brevity in this generated code, we acknowledge the step.
-        // const { data: items } = await supabaseAdmin.from('cart_items').select('*').eq('cart_id', cartId);
-        // await supabaseAdmin.from('enrollments').insert(items.map(i => ({...})));
-    }
-  }
-
-  return NextResponse.json({ received: true });
 }

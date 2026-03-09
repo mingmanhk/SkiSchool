@@ -1,15 +1,29 @@
+import { NextRequest } from 'next/server'
+import { apiSuccess, apiError } from '@/lib/api/response'
+import { createClient } from '@/utils/supabase/server'
+import { TenantService } from '@/lib/services/tenantService'
+import { parentRegisterSchema } from '@/lib/validation/schemas'
 
-import { createClient } from '@/utils/supabase/server';
-import { NextResponse } from 'next/server';
+const tenantService = new TenantService()
 
 export async function POST(
-  request: Request,
-  { params }: { params: { tenantSlug: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ tenantSlug: string }> },
 ) {
-  const { email, password, firstName, lastName } = await request.json();
-  const supabase = await createClient();
+  const { tenantSlug } = await params
 
-  // 1. Sign Up
+  const tenant = await tenantService.getTenantBySlug(tenantSlug)
+  if (!tenant) return apiError('Tenant not found', 404)
+
+  const body = await request.json()
+  const parsed = parentRegisterSchema.safeParse(body)
+  if (!parsed.success) {
+    return apiError(parsed.error.issues.map((i) => i.message).join(', '), 400)
+  }
+
+  const { email, password, firstName, lastName } = parsed.data
+  const supabase = await createClient()
+
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
@@ -17,15 +31,21 @@ export async function POST(
       data: {
         first_name: firstName,
         last_name: lastName,
-        role: 'PARENT'
-      }
-    }
-  });
+        tenant_id: tenant.id,
+        role: 'parent',
+      },
+    },
+  })
 
   if (authError) {
-    return NextResponse.json({ error: authError.message }, { status: 400 });
+    return apiError(authError.message, 400)
   }
 
-  // 2. Create Public Profile (Handled by Trigger, but we can verify or return success)
-  return NextResponse.json({ message: "Registration successful. Please check your email to verify account." });
+  return apiSuccess(
+    {
+      userId: authData.user?.id,
+      message: 'Registration successful. Please check your email to verify your account.',
+    },
+    201,
+  )
 }

@@ -1,5 +1,5 @@
 // Core TypeScript Interfaces and Types
-// Based on the Master Specification
+// Based on the Master Design Document
 
 // --- 1. TENANCY & IDENTITY ---
 
@@ -11,23 +11,14 @@ export interface Tenant {
   slug: string;
   name: string;
   status: TenantStatus;
-  featureFlags: {
-    enableStripe: boolean;
-    enablePaypal: boolean;
-    enableQuickbooks: boolean;
-    enableAi: boolean;
-    enableSms: boolean;
-    enablePublicSite: boolean;
-    enableCustomPages: boolean;
-    [key: string]: boolean;
-  };
+  featureFlags: Record<string, boolean>;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface User {
   id: string;
-  authUserId?: string; // Link to Supabase Auth
+  authUserId?: string; // Link to Supabase Auth auth.users.id
   email: string;
   name?: string;
   createdAt: string;
@@ -56,10 +47,9 @@ export interface Parent {
   familyId: string;
   userId?: string; // Optional link to user account
   email: string;
-  firstName: string;
-  lastName: string;
   phone?: string;
-  address?: string;
+  firstName?: string;
+  lastName?: string;
   createdAt: string;
 }
 
@@ -72,8 +62,6 @@ export interface Student {
   birthdate?: string;
   gender?: string;
   notes?: string;
-  medications?: string;
-  abilityLevel?: string;
   createdAt: string;
 }
 
@@ -115,12 +103,13 @@ export interface Enrollment {
 export interface Payment {
   id: string;
   tenantId: string;
-  enrollmentId?: string; // Or could be linked to an invoice/cart
+  enrollmentId?: string;
   provider: 'stripe' | 'paypal';
-  providerPaymentId: string;
+  providerPaymentId?: string;
   amount: number;
   currency: string;
   status: string;
+  rawPayload?: Record<string, unknown>;
   createdAt: string;
 }
 
@@ -165,14 +154,15 @@ export interface NavItem {
   label: string;
   href: string;
   external?: boolean;
-  order?: number;
 }
 
 export interface BrandingConfig {
   primaryColor?: string;
   secondaryColor?: string;
   accentColor?: string;
-  fontFamily?: string;
+  backgroundMode?: 'light' | 'dark';
+  headingFont?: string;
+  bodyFont?: string;
 }
 
 export interface LogoConfig {
@@ -183,12 +173,10 @@ export interface LogoConfig {
 }
 
 export interface HeroConfig {
+  imageUrl?: string;
   title?: string;
   subtitle?: string;
-  bgImage?: string;
   description?: string;
-  ctaText?: string;
-  ctaLink?: string;
 }
 
 export interface SiteConfig {
@@ -196,26 +184,48 @@ export interface SiteConfig {
   navigation: NavItem[];
   branding: BrandingConfig;
   logos: LogoConfig;
+  layout: Record<string, unknown>;
   hero: HeroConfig;
-  sections: Record<string, unknown>[]; // JSON blobs for different section types
-  aboutPageContent: Record<string, unknown>; // JSON blob
-  customPages: Record<string, unknown>[]; // Meta info for custom pages
+  sections: any[]; // Can be refined
+  aboutSections: any[];
+  teamSections: any[];
+  customPages: any[];
+  updatedAt: string;
+}
+
+export interface TenantDomain {
+  id: string;
+  tenantId: string;
+  domain: string;
+  status: 'pending_verification' | 'verified' | 'active' | 'suspended';
+  verificationToken: string;
+  lastVerifiedAt?: string;
+  sslStatus: 'pending' | 'active' | 'failed';
+  createdAt: string;
   updatedAt: string;
 }
 
 // --- 5. COMMUNICATION ---
 
 export type MessageChannel = 'sms' | 'email';
-export type MessageStatus = 'queued' | 'sending' | 'sent' | 'partially_failed' | 'failed';
+
+export type MessageStatus =
+  | 'queued'
+  | 'sending'
+  | 'sent'
+  | 'partially_failed'
+  | 'failed';
 
 export interface MessageTemplate {
   id: string;
   tenantId: string;
   name: string;
-  category: 'weather' | 'payment' | 'general' | 'emergency';
+  category?: string;
   channel: MessageChannel;
   body: string;
-  variables: string[]; // e.g. ['{{parentName}}']
+  variables: string[];
+  createdBy?: string;
+  updatedBy?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -226,33 +236,60 @@ export interface Message {
   channel: MessageChannel;
   templateId?: string;
   bodySnapshot: string;
-  filtersSnapshot: Record<string, unknown>; // The audience filters used
+  filtersSnapshot: Record<string, unknown>;
+  audienceSizeEstimate?: number;
   status: MessageStatus;
+  errorSummary?: string;
   sentBy?: string;
   createdAt: string;
+  updatedAt: string;
 }
+
+export type RecipientStatus = 'queued' | 'sent' | 'failed';
 
 export interface MessageRecipient {
   id: string;
   messageId: string;
   tenantId: string;
-  recipientPhone: string; // or email
-  status: 'queued' | 'sent' | 'failed';
+  parentId?: string;
+  studentId?: string;
+  phone: string;
+  status: RecipientStatus;
   providerMessageId?: string;
   providerResponse?: Record<string, unknown>;
   createdAt: string;
+  updatedAt: string;
 }
 
 // --- 6. REGISTRATION FLOW ---
 
-export type EmailClassification = 'new' | 'returning_account' | 'returning_historical';
+export type EmailClassification =
+  | 'new'
+  | 'returning_account'
+  | 'returning_historical';
 
-export interface RegistrationState {
-  step: 'account' | 'family' | 'students' | 'programs' | 'payment' | 'confirmation';
-  email: string;
-  classification?: EmailClassification;
-  familyData?: Partial<Family>;
-  parentsData?: Partial<Parent>[];
-  studentsData?: Partial<Student>[];
-  selectedPrograms?: string[]; // Program IDs
+// --- 7. TENANT API KEYS ---
+
+export interface TenantApiKey {
+  id: string;
+  tenantId: string;
+  publicKey: string;
+  secretKey: string; // Encrypted
+  status: 'active' | 'revoked';
+  createdBy?: string;
+  createdAt: string;
+  revokedAt?: string;
+}
+
+// --- 8. AUDIT LOGS ---
+
+export interface AuditLog {
+  id: string;
+  tenantId?: string;
+  userId?: string;
+  action: string;
+  entityType?: string;
+  entityId?: string;
+  metadata: Record<string, unknown>;
+  createdAt: string;
 }

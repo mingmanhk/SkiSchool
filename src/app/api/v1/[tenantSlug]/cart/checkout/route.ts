@@ -1,62 +1,57 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { createClient } from '@/utils/supabase/server'
+import { TenantService } from '@/lib/services/tenantService'
+import { PaymentService } from '@/lib/services/paymentService'
 
-import { createClient } from '@/utils/supabase/server';
-import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
+const tenantService = new TenantService()
+const paymentService = new PaymentService()
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16', // Use latest API version
-});
+const checkoutSchema = z.object({
+  enrollmentIds: z.array(z.string().uuid()).min(1),
+  amount: z.number().int().min(50),
+  currency: z.string().length(3).default('usd'),
+  successUrl: z.string().url(),
+  cancelUrl: z.string().url(),
+})
 
 export async function POST(
-  request: Request,
-  { params }: { params: { tenantSlug: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ tenantSlug: string }> },
 ) {
-  const body = await request.json();
-  const { cartId, successUrl, cancelUrl } = body;
-  const supabase = await createClient();
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // 1. Fetch Cart & Items
-  const { data: cartItems, error } = await supabase
-    .from('cart_items')
-    .select('*, class_occurrences(class_series(program_id, programs(name_en)))')
-    .eq('cart_id', cartId);
+  const { tenantSlug } = await params
+  const tenant = await tenantService.getTenantBySlug(tenantSlug)
+  if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
 
-  if (error || !cartItems || cartItems.length === 0) {
-    return NextResponse.json({ error: 'Cart is empty or not found' }, { status: 400 });
+  let rawBody: unknown
+  try {
+    rawBody = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  // 2. Create Stripe Line Items
-  const line_items = cartItems.map((item: any) => ({
-    price_data: {
-      currency: item.currency.toLowerCase(),
-      product_data: {
-        name: item.class_occurrences.class_series.programs.name_en, // Fallback to English name for Stripe
-        metadata: {
-          class_occurrence_id: item.class_occurrence_id,
-          student_id: item.student_id,
-        },
-      },
-      unit_amount: item.unit_price_cents,
-    },
-    quantity: 1,
-  }));
+  const parsed = checkoutSchema.safeParse(rawBody)
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+  }
 
-  // 3. Create Stripe Session
   try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items,
-      mode: 'payment',
-      success_url: successUrl || `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || `${process.env.NEXT_PUBLIC_APP_URL}/checkout/cancel`,
-      metadata: {
-        cartId: cartId,
-        tenantSlug: params.tenantSlug,
-      },
-    });
-
-    return NextResponse.json({ url: session.url });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const session = await paymentService.createCheckoutSession(tenant.id, {
+      tenantId: tenant.id,
+      enrollmentIds: parsed.data.enrollmentIds,
+      amount: parsed.data.amount,
+      currency: parsed.data.currency,
+      successUrl: parsed.data.successUrl,
+      cancelUrl: parsed.data.cancelUrl,
+      customerEmail: user.email,
+    })
+    return NextResponse.json({ url: session.url })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Checkout failed'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

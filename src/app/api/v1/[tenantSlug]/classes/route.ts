@@ -1,53 +1,30 @@
+import { NextRequest } from 'next/server'
+import { apiSuccess, apiError } from '@/lib/api/response'
+import { TenantService } from '@/lib/services/tenantService'
+import { ProgramService } from '@/lib/services/programService'
 
-import { createClient } from '@/utils/supabase/server';
-import { NextResponse } from 'next/server';
+const tenantService = new TenantService()
+const programService = new ProgramService()
 
+// Returns programs filtered by optional date/programId query params
+// (Class occurrence scheduling is a future feature; for now returns programs)
 export async function GET(
-  request: Request,
-  { params }: { params: { tenantSlug: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ tenantSlug: string }> },
 ) {
-  const { searchParams } = new URL(request.url);
-  const date = searchParams.get('date');
-  const programId = searchParams.get('programId');
-  
-  const supabase = await createClient();
+  const { tenantSlug } = await params
+  const { searchParams } = new URL(request.url)
+  const programId = searchParams.get('programId')
 
-  // 1. Resolve Tenant
-  const { data: school } = await supabase.from('schools').select('id').eq('slug', params.tenantSlug).single();
-  if (!school) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
+  const tenant = await tenantService.getTenantBySlug(tenantSlug)
+  if (!tenant) return apiError('Tenant not found', 404)
 
-  let query = supabase
-    .from('class_occurrences')
-    .select(`
-      id,
-      start_time,
-      end_time,
-      capacity,
-      spots_taken,
-      class_series!inner(
-        program_id,
-        programs!inner(school_id)
-      )
-    `)
-    .eq('class_series.programs.school_id', school.id);
-
-  if (date) {
-    // Basic date filtering (starts within the day)
-    query = query.gte('start_time', `${date}T00:00:00`).lte('start_time', `${date}T23:59:59`);
-  }
-  
   if (programId) {
-    query = query.eq('class_series.program_id', programId);
+    const program = await programService.getProgram(tenant.id, programId)
+    if (!program) return apiError('Program not found', 404)
+    return apiSuccess([program])
   }
 
-  const { data: classes, error } = await query;
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-  return NextResponse.json({ 
-    data: classes.map((c: any) => ({
-      ...c,
-      spots_remaining: c.capacity - c.spots_taken
-    }))
-  });
+  const programs = await programService.getPublicPrograms(tenant.id)
+  return apiSuccess(programs)
 }

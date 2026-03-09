@@ -6,38 +6,70 @@ import { updateSession } from '@/utils/supabase/middleware'
 const locales = ['en', 'zh']
 const defaultLocale = 'en'
 
+// Routes that should NOT be locale-prefixed (portal routes, auth, etc.)
+const NON_LOCALE_PREFIXES = [
+  '/parent',
+  '/employee',
+  '/instructor',
+  '/admin',
+  '/login',
+  '/signup',
+  '/auth',
+  '/instructors',
+  '/privacy',
+  '/terms',
+]
+
+function isNonLocaleRoute(pathname: string): boolean {
+  return NON_LOCALE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(prefix + '/'),
+  )
+}
+
 export async function middleware(request: NextRequest) {
-  // 1. Handle Supabase Auth Session
-  const sessionResponse = await updateSession(request)
+  // 1. Inject x-tenant-slug header for /api/v1/[tenantSlug]/* routes
+  const pathname = request.nextUrl.pathname
+  const apiTenantMatch = pathname.match(/^\/api\/v1\/([^/]+)(?:\/|$)/)
+  let incomingRequest = request
+  if (apiTenantMatch) {
+    const tenantSlug = apiTenantMatch[1]
+    const headers = new Headers(request.headers)
+    headers.set('x-tenant-slug', tenantSlug)
+    incomingRequest = new NextRequest(request, { headers })
+  }
+
+  // 2. Handle Supabase Auth Session
+  const sessionResponse = await updateSession(incomingRequest)
   if (sessionResponse.headers.get('location')) {
     return sessionResponse // Redirecting for auth
   }
 
-  // 2. Handle Locale Routing
-  const pathname = request.nextUrl.pathname
-  
-  // Exclude static assets, API routes, and special paths
+  // 3. Handle Locale Routing
+
+  // Exclude static assets, API routes, special paths, and portal routes
   if (
-    pathname.startsWith('/_next') || 
-    pathname.startsWith('/api') || 
-    pathname.startsWith('/widget') || 
-    pathname.startsWith('/auth') || 
-    pathname.includes('.')
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/widget') ||
+    pathname.startsWith('/scripts') ||
+    pathname.includes('.') ||
+    isNonLocaleRoute(pathname)
   ) {
     return sessionResponse
   }
 
-  // Check if pathname starts with a locale
+  // Check if pathname already starts with a supported locale
   const pathnameIsMissingLocale = locales.every(
-    (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
+    (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`,
   )
 
   if (pathnameIsMissingLocale) {
-    const locale = defaultLocale // In a real app, detect from headers 'accept-language'
-    
-    // Redirect to the same path with locale prefix
+    // Detect locale from Accept-Language header, default to 'en'
+    const acceptLanguage = request.headers.get('accept-language') || ''
+    const detectedLocale = acceptLanguage.startsWith('zh') ? 'zh' : defaultLocale
+
     return NextResponse.redirect(
-      new URL(`/${locale}${pathname}`, request.url)
+      new URL(`/${detectedLocale}${pathname}`, request.url),
     )
   }
 

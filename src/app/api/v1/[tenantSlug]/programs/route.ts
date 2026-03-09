@@ -1,49 +1,40 @@
+import { NextRequest } from 'next/server'
+import { apiSuccess, apiError } from '@/lib/api/response'
+import { TenantService } from '@/lib/services/tenantService'
+import { ProgramService } from '@/lib/services/programService'
+import { createProgramSchema } from '@/lib/validation/schemas'
 
-import { createClient } from '@/utils/supabase/server';
-import { NextRequest } from 'next/server';
-import { apiSuccess, apiError } from '@/lib/api/response';
-import { Program } from '@/types';
+const tenantService = new TenantService()
+const programService = new ProgramService()
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { tenantSlug: string } }
+  { params }: { params: Promise<{ tenantSlug: string }> },
 ) {
-  const { searchParams } = new URL(request.url);
-  const lang = searchParams.get('lang') === 'zh' ? 'zh' : 'en';
-  const supabase = await createClient();
+  const { tenantSlug } = await params
 
-  // 1. Resolve Tenant Slug to School ID
-  const { data: school, error: schoolError } = await supabase
-    .from('schools')
-    .select('id')
-    .eq('slug', params.tenantSlug)
-    .single();
+  const tenant = await tenantService.getTenantBySlug(tenantSlug)
+  if (!tenant) return apiError('Tenant not found', 404)
 
-  if (schoolError || !school) {
-    return apiError('Tenant not found', 404);
+  const programs = await programService.getPublicPrograms(tenant.id)
+  return apiSuccess(programs)
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ tenantSlug: string }> },
+) {
+  const { tenantSlug } = await params
+
+  const tenant = await tenantService.getTenantBySlug(tenantSlug)
+  if (!tenant) return apiError('Tenant not found', 404)
+
+  const body = await request.json()
+  const parsed = createProgramSchema.safeParse(body)
+  if (!parsed.success) {
+    return apiError(parsed.error.issues.map((i) => i.message).join(', '), 400)
   }
 
-  // 2. Fetch Programs with strict typing via Generics (if Supabase types were generated)
-  // For now, we manually map to our strict Program interface
-  const { data: programs, error } = await supabase
-    .from('programs')
-    .select('*')
-    .eq('school_id', school.id)
-    .eq('active', true);
-
-  if (error) {
-    return apiError(error.message, 500);
-  }
-
-  // 3. Localize Response using strict interface
-  const localizedPrograms = programs.map((p: any) => ({
-    id: p.id,
-    name: lang === 'zh' ? (p.name_zh || p.name_en) : (p.name_en || p.name_zh),
-    description: lang === 'zh' ? (p.description_zh || p.description_en) : (p.description_en || p.description_zh),
-    min_age: p.min_age,
-    max_age: p.max_age,
-    price: p.price_cents,
-  }));
-
-  return apiSuccess(localizedPrograms);
+  const program = await programService.createProgram(tenant.id, parsed.data)
+  return apiSuccess(program, 201)
 }

@@ -1,58 +1,93 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { eq, and, asc } from 'drizzle-orm'
+import { z } from 'zod'
+import { db } from '@/lib/db/client'
+import { parents, students } from '@/lib/db/schema_multi_tenant'
+import { TenantService } from '@/lib/services/tenantService'
+import { createClient } from '@/utils/supabase/server'
 
-import { createClient } from '@/utils/supabase/server';
-import { NextResponse } from 'next/server';
+const tenantService = new TenantService()
+
+const createStudentSchema = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  birthdate: z.string().date().optional(),
+  gender: z.enum(['male', 'female', 'other', 'prefer_not_to_say']).optional(),
+  notes: z.string().max(500).optional(),
+})
+
+async function resolveParent(userId: string, tenantId: string) {
+  const rows = await db
+    .select()
+    .from(parents)
+    .where(and(eq(parents.userId, userId), eq(parents.tenantId, tenantId)))
+    .limit(1)
+  return rows[0] ?? null
+}
 
 export async function GET(
-  request: Request,
-  { params }: { params: { tenantSlug: string } }
+  _req: NextRequest,
+  { params }: { params: Promise<{ tenantSlug: string }> },
 ) {
-  const { searchParams } = new URL(request.url);
-  const lang = searchParams.get('lang') === 'zh' ? 'zh' : 'en';
-  const supabase = await createClient();
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { tenantSlug } = await params
+  const tenant = await tenantService.getTenantBySlug(tenantSlug)
+  if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
 
-  // 1. Resolve Tenant
-  const { data: school } = await supabase.from('schools').select('id').eq('slug', params.tenantSlug).single();
-  if (!school) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
+  const parent = await resolveParent(user.id, tenant.id)
+  if (!parent) return NextResponse.json({ data: [] })
 
-  // 2. Fetch Students for Parent
-  const { data: students, error } = await supabase
-    .from('students')
-    .select('*')
-    .eq('parent_id', user.id) // RLS should handle this, but being explicit
-    .order('first_name');
+  const rows = await db
+    .select()
+    .from(students)
+    .where(and(eq(students.familyId, parent.familyId), eq(students.tenantId, tenant.id)))
+    .orderBy(asc(students.firstName))
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-  return NextResponse.json({ data: students });
+  return NextResponse.json({ data: rows })
 }
 
 export async function POST(
-  request: Request,
-  { params }: { params: { tenantSlug: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ tenantSlug: string }> },
 ) {
-  const body = await request.json();
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { tenantSlug } = await params
+  const tenant = await tenantService.getTenantBySlug(tenantSlug)
+  if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
 
-  const { firstName, lastName, birthdate } = body;
+  let rawBody: unknown
+  try {
+    rawBody = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
 
-  const { data, error } = await supabase
-    .from('students')
-    .insert({
-      first_name: firstName,
-      last_name: lastName,
-      birthdate: birthdate,
-      parent_id: user.id
+  const parsed = createStudentSchema.safeParse(rawBody)
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+  }
+
+  const parent = await resolveParent(user.id, tenant.id)
+  if (!parent) return NextResponse.json({ error: 'Parent profile not found' }, { status: 404 })
+
+  const result = await db
+    .insert(students)
+    .values({
+      tenantId: tenant.id,
+      familyId: parent.familyId,
+      firstName: parsed.data.firstName,
+      lastName: parsed.data.lastName,
+      birthdate: parsed.data.birthdate ?? null,
+      gender: parsed.data.gender ?? null,
+      notes: parsed.data.notes ?? null,
     })
-    .select()
-    .single();
+    .returning()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-  return NextResponse.json({ data });
+  return NextResponse.json({ data: result[0] }, { status: 201 })
 }
