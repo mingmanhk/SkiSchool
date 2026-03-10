@@ -36,7 +36,7 @@ export class EmailService {
       from: options.from ?? DEFAULT_FROM,
       replyTo: options.replyTo,
       subject: options.subject,
-      text: options.text,
+      text: options.text ?? '',
       html: options.html,
       customArgs: _tenantId ? { tenantId: _tenantId } : undefined,
     })

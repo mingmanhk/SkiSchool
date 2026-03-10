@@ -20,8 +20,8 @@ export class ProgramService {
       ageMax: row.ageMax || undefined,
       skillLevel: row.skillLevel || undefined,
       seasonYear: row.seasonYear || undefined,
-      startDate: row.startDate?.toISOString() || undefined,
-      endDate: row.endDate?.toISOString() || undefined,
+      startDate: row.startDate ?? undefined,
+      endDate: row.endDate ?? undefined,
       location: row.location || undefined,
       price: row.price ? Number(row.price) : undefined,
       capacity: row.capacity || undefined,
@@ -56,8 +56,8 @@ export class ProgramService {
       ageMax: row.ageMax || undefined,
       skillLevel: row.skillLevel || undefined,
       seasonYear: row.seasonYear || undefined,
-      startDate: row.startDate?.toISOString() || undefined,
-      endDate: row.endDate?.toISOString() || undefined,
+      startDate: row.startDate ?? undefined,
+      endDate: row.endDate ?? undefined,
       location: row.location || undefined,
       price: row.price ? Number(row.price) : undefined,
       capacity: row.capacity || undefined,
@@ -82,8 +82,8 @@ export class ProgramService {
         ageMax: data.ageMax || null,
         skillLevel: data.skillLevel || null,
         seasonYear: data.seasonYear || null,
-        startDate: data.startDate ? new Date(data.startDate) : null,
-        endDate: data.endDate ? new Date(data.endDate) : null,
+        startDate: data.startDate ?? null,
+        endDate: data.endDate ?? null,
         location: data.location || null,
         price: data.price ? data.price.toString() : null,
         capacity: data.capacity || null,
@@ -102,8 +102,8 @@ export class ProgramService {
       ageMax: row.ageMax || undefined,
       skillLevel: row.skillLevel || undefined,
       seasonYear: row.seasonYear || undefined,
-      startDate: row.startDate?.toISOString() || undefined,
-      endDate: row.endDate?.toISOString() || undefined,
+      startDate: row.startDate ?? undefined,
+      endDate: row.endDate ?? undefined,
       location: row.location || undefined,
       price: row.price ? Number(row.price) : undefined,
       capacity: row.capacity || undefined,
@@ -133,9 +133,9 @@ export class ProgramService {
     if (data.seasonYear !== undefined)
       updateValues.seasonYear = data.seasonYear || null;
     if (data.startDate !== undefined)
-      updateValues.startDate = data.startDate ? new Date(data.startDate) : null;
+      updateValues.startDate = data.startDate ?? null;
     if (data.endDate !== undefined)
-      updateValues.endDate = data.endDate ? new Date(data.endDate) : null;
+      updateValues.endDate = data.endDate ?? null;
     if (data.location !== undefined)
       updateValues.location = data.location || null;
     if (data.price !== undefined)
@@ -167,8 +167,8 @@ export class ProgramService {
       ageMax: row.ageMax || undefined,
       skillLevel: row.skillLevel || undefined,
       seasonYear: row.seasonYear || undefined,
-      startDate: row.startDate?.toISOString() || undefined,
-      endDate: row.endDate?.toISOString() || undefined,
+      startDate: row.startDate ?? undefined,
+      endDate: row.endDate ?? undefined,
       location: row.location || undefined,
       price: row.price ? Number(row.price) : undefined,
       capacity: row.capacity || undefined,
@@ -210,8 +210,8 @@ export class ProgramService {
       ageMax: row.ageMax || undefined,
       skillLevel: row.skillLevel || undefined,
       seasonYear: row.seasonYear || undefined,
-      startDate: row.startDate?.toISOString() || undefined,
-      endDate: row.endDate?.toISOString() || undefined,
+      startDate: row.startDate ?? undefined,
+      endDate: row.endDate ?? undefined,
       location: row.location || undefined,
       price: row.price ? Number(row.price) : undefined,
       capacity: row.capacity || undefined,

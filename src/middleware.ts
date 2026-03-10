@@ -1,4 +1,4 @@
-import { type NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
 
 const locales = ['en', 'zh']
