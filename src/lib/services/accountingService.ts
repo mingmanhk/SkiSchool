@@ -198,11 +198,11 @@ export class AccountingService {
     const payment = rows[0]
 
     const accessToken = await this.refreshAccessToken(tenantId)
-    const amount = ((payment.amountCents as number) / 100).toFixed(2)
+    const amount = payment.amount ? parseFloat(payment.amount).toFixed(2) : '0.00'
 
     const qbPayment = {
       TotalAmt: parseFloat(amount),
-      CustomerRef: { value: payment.familyId },
+      CustomerRef: { value: payment.enrollmentId ?? payment.id },
     }
 
     const res = await fetch(`${QB_API_BASE}/${config.realmId}/payment`, {
