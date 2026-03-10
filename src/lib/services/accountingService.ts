@@ -179,8 +179,8 @@ export class AccountingService {
       tenantId,
       userId: 'system',
       action: 'quickbooks.invoice.created',
-      resourceType: 'enrollment',
-      resourceId: enrollmentId,
+      entityType: 'enrollment',
+      entityId: enrollmentId,
     })
   }
 
@@ -224,8 +224,8 @@ export class AccountingService {
       tenantId,
       userId: 'system',
       action: 'quickbooks.payment.synced',
-      resourceType: 'payment',
-      resourceId: paymentId,
+      entityType: 'payment',
+      entityId: paymentId,
     })
   }
 }
