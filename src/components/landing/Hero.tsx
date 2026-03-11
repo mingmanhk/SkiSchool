@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 
-export default function Hero({ lang = "en" }: { lang?: string }) {
+export default function Hero() {
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-white dark:bg-gray-900">
       {/* Background Image with Overlay */}
@@ -36,7 +36,7 @@ export default function Hero({ lang = "en" }: { lang?: string }) {
                         Get Started for Free
                     </Button>
                 </Link>
-                <Link href={`/${lang}/contact`}>
+                <Link href={`#contact`}>
                     <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm text-lg h-14 px-8">
                         Book a Demo
                     </Button>

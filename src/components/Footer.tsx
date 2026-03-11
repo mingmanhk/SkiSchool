@@ -28,18 +28,18 @@ const Footer = () => {
             <ul className="space-y-4 text-sm text-gray-400">
               <li><Link href="#features" className="hover:text-primary-400 transition-colors">Features</Link></li>
               <li><Link href="#pricing" className="hover:text-primary-400 transition-colors">Pricing</Link></li>
-              <li><Link href="/integrations" className="hover:text-primary-400 transition-colors">Integrations</Link></li>
-              <li><Link href="/changelog" className="hover:text-primary-400 transition-colors">Changelog</Link></li>
+              <li><Link href="#features" className="hover:text-primary-400 transition-colors">Integrations</Link></li>
+              <li><Link href="#features" className="hover:text-primary-400 transition-colors">Changelog</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-bold text-lg mb-6">Resources</h4>
             <ul className="space-y-4 text-sm text-gray-400">
-              <li><Link href="/blog" className="hover:text-primary-400 transition-colors">Blog</Link></li>
-              <li><Link href="/docs" className="hover:text-primary-400 transition-colors">Documentation</Link></li>
-              <li><Link href="/help" className="hover:text-primary-400 transition-colors">Help Center</Link></li>
-              <li><Link href="/contact" className="hover:text-primary-400 transition-colors">Contact Support</Link></li>
+              <li><Link href="#" className="hover:text-primary-400 transition-colors">Blog</Link></li>
+              <li><Link href="#" className="hover:text-primary-400 transition-colors">Documentation</Link></li>
+              <li><Link href="#" className="hover:text-primary-400 transition-colors">Help Center</Link></li>
+              <li><Link href="#contact" className="hover:text-primary-400 transition-colors">Contact Support</Link></li>
             </ul>
           </div>
 
@@ -48,7 +48,7 @@ const Footer = () => {
             <ul className="space-y-4 text-sm text-gray-400">
               <li><Link href="/privacy" className="hover:text-primary-400 transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-primary-400 transition-colors">Terms of Service</Link></li>
-              <li><Link href="/security" className="hover:text-primary-400 transition-colors">Security</Link></li>
+              <li><Link href="#" className="hover:text-primary-400 transition-colors">Security</Link></li>
             </ul>
           </div>
         </div>
