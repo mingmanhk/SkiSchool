@@ -11,6 +11,15 @@ import {
 import { encrypt, decrypt } from '@/lib/utils/encryption';
 import { AuditService } from './auditService';
 
+// Typed shapes for JSONB columns in integration_configs
+interface PaymentsBlob {
+  stripe?: StripeConfig;
+  paypal?: PayPalConfig;
+}
+interface AccountingBlob {
+  quickbooks?: QuickBooksConfig;
+}
+
 const auditService = new AuditService();
 
 export class IntegrationService {
@@ -26,8 +35,8 @@ export class IntegrationService {
     }
 
     const row = results[0];
-    const paymentsBlob = (row.payments as any) || {};
-    const accountingBlob = (row.accounting as any) || {};
+    const paymentsBlob = ((row.payments ?? {}) as PaymentsBlob);
+    const accountingBlob = ((row.accounting ?? {}) as AccountingBlob);
 
     const stripe = paymentsBlob.stripe
       ? {
@@ -70,9 +79,9 @@ export class IntegrationService {
     userId: string,
   ): Promise<void> {
     const existing = await this.getConfigs(tenantId);
-    const paymentsBlob = (existing?.payments as any) || {};
+    const paymentsBlob: PaymentsBlob = existing?.payments ?? {};
 
-    const encryptedStripe: Record<string, string | undefined> = {
+    const encryptedStripe: StripeConfig = {
       publishableKey: stripe.publishableKey,
     };
 
@@ -86,9 +95,9 @@ export class IntegrationService {
     const updatedPayments = { ...paymentsBlob, stripe: encryptedStripe };
     await this.upsertConfigs(tenantId, {
       payments: updatedPayments,
-      accounting: existing?.accounting || {},
-      aiSettings: existing?.aiSettings || {},
-      smsSettings: existing?.smsSettings || {},
+      accounting: existing?.accounting ?? {},
+      aiSettings: existing?.aiSettings ?? {},
+      smsSettings: existing?.smsSettings ?? {},
       updatedBy: userId,
     });
 
@@ -101,9 +110,9 @@ export class IntegrationService {
     userId: string,
   ): Promise<void> {
     const existing = await this.getConfigs(tenantId);
-    const paymentsBlob = (existing?.payments as any) || {};
+    const paymentsBlob: PaymentsBlob = existing?.payments ?? {};
 
-    const encryptedPayPal: Record<string, string | undefined> = {};
+    const encryptedPayPal: PayPalConfig = {};
     if (paypal.clientId) {
       encryptedPayPal.clientIdEncrypted = await encrypt(paypal.clientId);
     }
@@ -114,9 +123,9 @@ export class IntegrationService {
     const updatedPayments = { ...paymentsBlob, paypal: encryptedPayPal };
     await this.upsertConfigs(tenantId, {
       payments: updatedPayments,
-      accounting: existing?.accounting || {},
-      aiSettings: existing?.aiSettings || {},
-      smsSettings: existing?.smsSettings || {},
+      accounting: existing?.accounting ?? {},
+      aiSettings: existing?.aiSettings ?? {},
+      smsSettings: existing?.smsSettings ?? {},
       updatedBy: userId,
     });
 
@@ -129,9 +138,9 @@ export class IntegrationService {
     userId: string,
   ): Promise<void> {
     const existing = await this.getConfigs(tenantId);
-    const accountingBlob = (existing?.accounting as any) || {};
+    const accountingBlob: AccountingBlob = existing?.accounting ?? {};
 
-    const encryptedQB: Record<string, string | undefined> = {
+    const encryptedQB: QuickBooksConfig = {
       realmId: qb.realmId,
     };
     if (qb.clientId) encryptedQB.clientIdEncrypted = await encrypt(qb.clientId);
@@ -140,10 +149,10 @@ export class IntegrationService {
 
     const updatedAccounting = { ...accountingBlob, quickbooks: encryptedQB };
     await this.upsertConfigs(tenantId, {
-      payments: existing?.payments || {},
+      payments: existing?.payments ?? {},
       accounting: updatedAccounting,
-      aiSettings: existing?.aiSettings || {},
-      smsSettings: existing?.smsSettings || {},
+      aiSettings: existing?.aiSettings ?? {},
+      smsSettings: existing?.smsSettings ?? {},
       updatedBy: userId,
     });
 
@@ -174,8 +183,8 @@ export class IntegrationService {
   private async upsertConfigs(
     tenantId: string,
     configs: {
-      payments: any;
-      accounting: any;
+      payments: PaymentsBlob;
+      accounting: AccountingBlob;
       aiSettings: Record<string, unknown>;
       smsSettings: Record<string, unknown>;
       updatedBy: string;

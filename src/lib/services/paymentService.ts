@@ -33,7 +33,7 @@ async function getStripeClient(tenantId: string): Promise<Stripe> {
     throw new Error('Stripe is not configured for this tenant')
   }
   const secretKey = await decrypt(config.secretKeyEncrypted)
-  return new Stripe(secretKey, { apiVersion: '2024-12-18.acacia' })
+  return new Stripe(secretKey, { apiVersion: '2025-12-15.clover' })
 }
 
 export class PaymentService {

@@ -1,8 +1,8 @@
 // SiteBuilderService: CMS for public site
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
-import { siteConfigs, tenants } from '@/lib/db/schema_multi_tenant';
-import { SiteConfig } from '@/types/spec';
+import { siteConfigs } from '@/lib/db/schema_multi_tenant';
+import { SiteConfig, NavItem, BrandingConfig, LogoConfig, HeroConfig } from '@/types/spec';
 import { TenantService } from './tenantService';
 
 export class SiteBuilderService {
@@ -33,8 +33,7 @@ export class SiteBuilderService {
     const existing = await this.getSiteConfig(tenantId);
 
     // Merge partial into existing
-    const merged: SiteConfig = {
-      tenantId,
+    const fields = {
       navigation: partial.navigation ?? existing.navigation,
       branding: partial.branding ?? existing.branding,
       logos: partial.logos ?? existing.logos,
@@ -44,57 +43,17 @@ export class SiteBuilderService {
       aboutSections: partial.aboutSections ?? existing.aboutSections,
       teamSections: partial.teamSections ?? existing.teamSections,
       customPages: partial.customPages ?? existing.customPages,
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     };
 
-    // Check if config exists
-    const existingResults = await db
-      .select()
-      .from(siteConfigs)
-      .where(eq(siteConfigs.tenantId, tenantId))
-      .limit(1);
+    // Upsert — tenantId is the PK so conflict = existing row
+    const result = await db
+      .insert(siteConfigs)
+      .values({ tenantId, ...fields })
+      .onConflictDoUpdate({ target: siteConfigs.tenantId, set: fields })
+      .returning();
 
-    if (existingResults.length > 0) {
-      // Update existing
-      const result = await db
-        .update(siteConfigs)
-        .set({
-          navigation: merged.navigation,
-          branding: merged.branding,
-          logos: merged.logos,
-          layout: merged.layout,
-          hero: merged.hero,
-          sections: merged.sections,
-          aboutSections: merged.aboutSections,
-          teamSections: merged.teamSections,
-          customPages: merged.customPages,
-          updatedAt: new Date(),
-        })
-        .where(eq(siteConfigs.tenantId, tenantId))
-        .returning();
-
-      return this.mapRowToSiteConfig(result[0]);
-    } else {
-      // Insert new
-      const result = await db
-        .insert(siteConfigs)
-        .values({
-          tenantId,
-          navigation: merged.navigation,
-          branding: merged.branding,
-          logos: merged.logos,
-          layout: merged.layout,
-          hero: merged.hero,
-          sections: merged.sections,
-          aboutSections: merged.aboutSections,
-          teamSections: merged.teamSections,
-          customPages: merged.customPages,
-          updatedAt: new Date(),
-        })
-        .returning();
-
-      return this.mapRowToSiteConfig(result[0]);
-    }
+    return this.mapRowToSiteConfig(result[0]);
   }
 
   async getPublicSiteConfigBySlug(tenantSlug: string): Promise<SiteConfig> {
@@ -110,15 +69,15 @@ export class SiteBuilderService {
   private mapRowToSiteConfig(row: typeof siteConfigs.$inferSelect): SiteConfig {
     return {
       tenantId: row.tenantId,
-      navigation: (row.navigation as any) || [],
-      branding: (row.branding as any) || {},
-      logos: (row.logos as any) || {},
-      layout: (row.layout as any) || {},
-      hero: (row.hero as any) || {},
-      sections: (row.sections as any) || [],
-      aboutSections: (row.aboutSections as any) || [],
-      teamSections: (row.teamSections as any) || [],
-      customPages: (row.customPages as any) || [],
+      navigation: (row.navigation as NavItem[]) ?? [],
+      branding: (row.branding as BrandingConfig) ?? {},
+      logos: (row.logos as LogoConfig) ?? {},
+      layout: (row.layout as Record<string, unknown>) ?? {},
+      hero: (row.hero as HeroConfig) ?? {},
+      sections: (row.sections as Record<string, unknown>[]) ?? [],
+      aboutSections: (row.aboutSections as Record<string, unknown>[]) ?? [],
+      teamSections: (row.teamSections as Record<string, unknown>[]) ?? [],
+      customPages: (row.customPages as Record<string, unknown>[]) ?? [],
       updatedAt: row.updatedAt.toISOString(),
     };
   }

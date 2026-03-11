@@ -119,21 +119,17 @@ export class MessageService {
     data: Partial<MessageTemplate>,
     userId: string,
   ): Promise<MessageTemplate> {
-    const updateValues: any = {
-      updatedBy: userId,
-      updatedAt: new Date(),
-    };
-
-    if (data.name !== undefined) updateValues.name = data.name;
-    if (data.category !== undefined)
-      updateValues.category = data.category || null;
-    if (data.channel !== undefined) updateValues.channel = data.channel;
-    if (data.body !== undefined) updateValues.body = data.body;
-    if (data.variables !== undefined) updateValues.variables = data.variables;
-
     const result = await db
       .update(messageTemplates)
-      .set(updateValues)
+      .set({
+        updatedBy: userId,
+        updatedAt: new Date(),
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.category !== undefined ? { category: data.category ?? null } : {}),
+        ...(data.channel !== undefined ? { channel: data.channel } : {}),
+        ...(data.body !== undefined ? { body: data.body } : {}),
+        ...(data.variables !== undefined ? { variables: data.variables } : {}),
+      })
       .where(
         and(
           eq(messageTemplates.id, templateId),
@@ -237,7 +233,7 @@ export class MessageService {
         channel: 'sms',
         templateId: params.templateId || null,
         bodySnapshot: body,
-        filtersSnapshot: params.filters as any,
+        filtersSnapshot: params.filters as Record<string, unknown>,
         audienceSizeEstimate: audience.length,
         status: 'queued',
         sentBy: params.sentBy,
@@ -282,24 +278,35 @@ export class MessageService {
 
           await db.update(messages).set({ status: finalStatus, updatedAt: new Date() }).where(eq(messages.id, message.id));
 
-          // Update individual recipient statuses (scoped by parentId, not just messageId)
-          await Promise.all(
-            audience.map((recipient, i) => {
-              const response = responses[i];
-              return db.update(messageRecipients)
-                .set({
-                  status: response.status === 'failed' ? 'failed' : 'sent',
-                  providerMessageId: response.providerMessageId || null,
-                  updatedAt: new Date(),
-                })
-                .where(
-                  and(
-                    eq(messageRecipients.messageId, message.id),
-                    eq(messageRecipients.parentId, recipient.parentId),
-                  ),
-                );
-            }),
-          );
+          // Batch update recipient statuses — group by outcome (2 queries max instead of N)
+          const sentIds = audience
+            .filter((_, i) => responses[i]?.status !== 'failed')
+            .map((r) => r.parentId);
+          const failedIds = audience
+            .filter((_, i) => responses[i]?.status === 'failed')
+            .map((r) => r.parentId);
+          const batchUpdates: Promise<unknown>[] = [];
+          if (sentIds.length > 0) {
+            batchUpdates.push(
+              db.update(messageRecipients)
+                .set({ status: 'sent', updatedAt: new Date() })
+                .where(and(
+                  eq(messageRecipients.messageId, message.id),
+                  inArray(messageRecipients.parentId, sentIds),
+                )),
+            );
+          }
+          if (failedIds.length > 0) {
+            batchUpdates.push(
+              db.update(messageRecipients)
+                .set({ status: 'failed', updatedAt: new Date() })
+                .where(and(
+                  eq(messageRecipients.messageId, message.id),
+                  inArray(messageRecipients.parentId, failedIds),
+                )),
+            );
+          }
+          await Promise.all(batchUpdates);
         })
         .catch((err) => {
           console.error('[MessageService] SMS dispatch error:', err);
