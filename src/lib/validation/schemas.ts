@@ -90,7 +90,7 @@ export const parentLoginSchema = z.object({
 
 // --- Programs ---
 
-export const createProgramSchema = z.object({
+const programFields = {
   name: z.string().min(1, 'Program name is required'),
   discipline: z.string().optional(),
   ageMin: z.number().int().min(0).max(100).optional(),
@@ -104,15 +104,27 @@ export const createProgramSchema = z.object({
   capacity: z.number().int().min(1).optional(),
   description: z.string().optional(),
   visibilityStatus: z.enum(['public', 'hidden']).default('public'),
-}).refine(
-  (d) => d.ageMin === undefined || d.ageMax === undefined || d.ageMin <= d.ageMax,
-  { message: 'ageMin must be less than or equal to ageMax', path: ['ageMin'] },
-).refine(
-  (d) => d.startDate === undefined || d.endDate === undefined || d.startDate <= d.endDate,
-  { message: 'startDate must be on or before endDate', path: ['startDate'] },
-)
+}
 
-export const updateProgramSchema = createProgramSchema.partial()
+export const createProgramSchema = z.object(programFields)
+  .refine(
+    (d) => d.ageMin === undefined || d.ageMax === undefined || d.ageMin <= d.ageMax,
+    { message: 'ageMin must be less than or equal to ageMax', path: ['ageMin'] },
+  )
+  .refine(
+    (d) => d.startDate === undefined || d.endDate === undefined || d.startDate <= d.endDate,
+    { message: 'startDate must be on or before endDate', path: ['startDate'] },
+  )
+
+export const updateProgramSchema = z.object(programFields).partial()
+  .refine(
+    (d) => d.ageMin === undefined || d.ageMax === undefined || d.ageMin <= d.ageMax,
+    { message: 'ageMin must be less than or equal to ageMax', path: ['ageMin'] },
+  )
+  .refine(
+    (d) => d.startDate === undefined || d.endDate === undefined || d.startDate <= d.endDate,
+    { message: 'startDate must be on or before endDate', path: ['startDate'] },
+  )
 
 // --- Payments ---
 
