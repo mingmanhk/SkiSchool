@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { TenantService } from '@/lib/services/tenantService'
 import { MessageService } from '@/lib/services/messageService'
 import { createMessageTemplateSchema, sendMessageSchema } from '@/lib/validation/schemas'
-import { createClient } from '@/utils/supabase/server'
+import { requireTenantAdmin } from '@/lib/utils/requireTenantAdmin'
 
 const tenantService = new TenantService()
 const messageService = new MessageService()
@@ -11,13 +11,12 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ tenantSlug: string }> },
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
   const { tenantSlug } = await params
   const tenant = await tenantService.getTenantBySlug(tenantSlug)
   if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
+
+  const auth = await requireTenantAdmin(tenant.id)
+  if (!auth.ok) return auth.response
 
   let body: unknown
   try {
@@ -29,7 +28,7 @@ export async function POST(
   // Determine whether this is a template creation or message send by shape
   const tmplParsed = createMessageTemplateSchema.safeParse(body)
   if (tmplParsed.success) {
-    const template = await messageService.createTemplate(tenant.id, tmplParsed.data, user.id)
+    const template = await messageService.createTemplate(tenant.id, tmplParsed.data, auth.userId)
     return NextResponse.json({ data: template }, { status: 201 })
   }
 
@@ -41,7 +40,7 @@ export async function POST(
   const message = await messageService.sendMessage({
     tenantId: tenant.id,
     ...msgParsed.data,
-    sentBy: user.id,
+    sentBy: auth.userId,
   })
   return NextResponse.json({ data: message }, { status: 201 })
 }

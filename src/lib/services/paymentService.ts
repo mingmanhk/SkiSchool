@@ -33,7 +33,7 @@ async function getStripeClient(tenantId: string): Promise<Stripe> {
     throw new Error('Stripe is not configured for this tenant')
   }
   const secretKey = await decrypt(config.secretKeyEncrypted)
-  return new Stripe(secretKey, { apiVersion: '2025-12-15.clover' })
+  return new Stripe(secretKey, { apiVersion: '2024-12-18.acacia' })
 }
 
 export class PaymentService {
@@ -43,15 +43,19 @@ export class PaymentService {
   ): Promise<PaymentSession> {
     const stripe = await getStripeClient(tenantId)
 
-    const intent = await stripe.paymentIntents.create({
-      amount: data.amount,
-      currency: data.currency || 'usd',
-      receipt_email: data.customerEmail,
-      metadata: {
-        tenantId,
-        enrollmentIds: data.enrollmentIds.join(','),
+    const idempotencyKey = `pi_${tenantId}_${data.enrollmentIds.sort().join('-')}`
+    const intent = await stripe.paymentIntents.create(
+      {
+        amount: data.amount,
+        currency: data.currency || 'usd',
+        receipt_email: data.customerEmail,
+        metadata: {
+          tenantId,
+          enrollmentIds: data.enrollmentIds.join(','),
+        },
       },
-    })
+      { idempotencyKey },
+    )
 
     return {
       id: intent.id,

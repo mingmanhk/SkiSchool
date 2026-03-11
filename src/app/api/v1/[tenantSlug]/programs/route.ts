@@ -3,6 +3,7 @@ import { apiSuccess, apiError } from '@/lib/api/response'
 import { TenantService } from '@/lib/services/tenantService'
 import { ProgramService } from '@/lib/services/programService'
 import { createProgramSchema } from '@/lib/validation/schemas'
+import { requireTenantAdmin } from '@/lib/utils/requireTenantAdmin'
 
 const tenantService = new TenantService()
 const programService = new ProgramService()
@@ -28,6 +29,9 @@ export async function POST(
 
   const tenant = await tenantService.getTenantBySlug(tenantSlug)
   if (!tenant) return apiError('Tenant not found', 404)
+
+  const auth = await requireTenantAdmin(tenant.id)
+  if (!auth.ok) return auth.response
 
   const body = await request.json()
   const parsed = createProgramSchema.safeParse(body)

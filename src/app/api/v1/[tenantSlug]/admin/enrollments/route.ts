@@ -4,26 +4,27 @@ import { z } from 'zod'
 import { db } from '@/lib/db/client'
 import { enrollments } from '@/lib/db/schema_multi_tenant'
 import { TenantService } from '@/lib/services/tenantService'
-import { createClient } from '@/utils/supabase/server'
+import { requireTenantAdmin } from '@/lib/utils/requireTenantAdmin'
+
 
 const tenantService = new TenantService()
 
+// Status values must match DB column comment: pending, confirmed, canceled
 const patchBodySchema = z.object({
   enrollmentId: z.string().uuid(),
-  status: z.enum(['pending', 'confirmed', 'cancelled', 'waitlisted']),
+  status: z.enum(['pending', 'confirmed', 'canceled']),
 })
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ tenantSlug: string }> },
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
   const { tenantSlug } = await params
   const tenant = await tenantService.getTenantBySlug(tenantSlug)
   if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
+
+  const auth = await requireTenantAdmin(tenant.id)
+  if (!auth.ok) return auth.response
 
   const url = new URL(req.url)
   const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '50'), 200)
@@ -43,13 +44,12 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ tenantSlug: string }> },
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
   const { tenantSlug } = await params
   const tenant = await tenantService.getTenantBySlug(tenantSlug)
   if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
+
+  const auth = await requireTenantAdmin(tenant.id)
+  if (!auth.ok) return auth.response
 
   let rawBody: unknown
   try {

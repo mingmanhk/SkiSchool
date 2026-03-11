@@ -1,5 +1,7 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
+
+const TENANT_SLUG_RE = /^[a-z0-9-]{2,63}$/
 
 export async function middleware(request: NextRequest) {
   // 1. Inject x-tenant-slug header for /api/v1/[tenantSlug]/* routes
@@ -8,6 +10,9 @@ export async function middleware(request: NextRequest) {
   let incomingRequest = request
   if (apiTenantMatch) {
     const tenantSlug = apiTenantMatch[1]
+    if (!TENANT_SLUG_RE.test(tenantSlug)) {
+      return NextResponse.json({ error: 'Invalid tenant' }, { status: 400 })
+    }
     const headers = new Headers(request.headers)
     headers.set('x-tenant-slug', tenantSlug)
     incomingRequest = new NextRequest(request, { headers })

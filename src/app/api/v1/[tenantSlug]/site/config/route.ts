@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { TenantService } from '@/lib/services/tenantService'
 import { SiteBuilderService } from '@/lib/services/siteBuilderService'
 import { updateSiteConfigSchema } from '@/lib/validation/schemas'
-import { createClient } from '@/utils/supabase/server'
+import { requireTenantAdmin } from '@/lib/utils/requireTenantAdmin'
 
 const tenantService = new TenantService()
 const siteBuilderService = new SiteBuilderService()
@@ -23,13 +23,12 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ tenantSlug: string }> },
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
   const { tenantSlug } = await params
   const tenant = await tenantService.getTenantBySlug(tenantSlug)
   if (!tenant) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
+
+  const auth = await requireTenantAdmin(tenant.id)
+  if (!auth.ok) return auth.response
 
   let body: unknown
   try {
@@ -43,6 +42,6 @@ export async function PUT(
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
-  const config = await siteBuilderService.updateSiteConfig(tenant.id, parsed.data, user.id)
+  const config = await siteBuilderService.updateSiteConfig(tenant.id, parsed.data, auth.userId)
   return NextResponse.json({ data: config })
 }
